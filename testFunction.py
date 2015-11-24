@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 def firstDeJong(basicPlane):
     result = 0
@@ -87,3 +88,38 @@ def sineWave(data):
 
     return result
 
+class MultiPurposeFnc(object):
+    NAME = 'multi_purpose_function'
+    MAX_X = 1
+    MIN_X = 0
+    DEFAULT_STEP = 0.1
+
+    @staticmethod
+    def f1(x1):
+        return x1
+
+    @staticmethod
+    def g(x2):
+        return 10 + x2
+
+    @staticmethod
+    def function(x1, x2, F, gs=11, gss=12):
+        alfa = 0.25 + 3.75*((MultiPurposeFnc.g(x2)-gss)/(gs-gss))
+        tmp1 = MultiPurposeFnc.f1(x1) / MultiPurposeFnc.g(x2)
+        h = tmp1**alfa - tmp1 * math.sin(math.pi * F * MultiPurposeFnc.f1(x1) * MultiPurposeFnc.g(x1))
+
+        return h
+
+    @staticmethod
+    def graph_z(X1, X2, F, z_corector=1):
+        Z = [None] * len(X1)
+        for i in range(len(X1)):
+            Z[i] = []
+            for j in range(len(X2)):
+                Z[i].append(MultiPurposeFnc.function(X1[i], X2[j], F) * z_corector)
+        return Z
+
+    @staticmethod
+    def generate_default():
+        x = np.arange(MultiPurposeFnc.MIN_X, MultiPurposeFnc.MAX_X, MultiPurposeFnc.DEFAULT_STEP)
+        return (x,x)

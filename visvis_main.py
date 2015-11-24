@@ -26,29 +26,9 @@ class MainWindow(QtGui.QWidget):
         self.sizer.addWidget(self.panel, 1)
         self.sizer.addWidget(self.fig._widget, 2)
 
+        self.initializePlot()
         # Make callback
         # but.pressed.connect(self._Plot)
-
-    """
-    Initialization of MathPlotLib
-    - creates canvas, figure etc.
-    """
-    def initializePlot(self):
-        self.axes = self.canvas.figure.add_subplot(111, projection='3d')
-        #draw data
-        X = np.arange(-3, 3, 0.2)
-        #Basic plane
-        basicPlane = np.meshgrid(X, X)
-
-        X, Y = basicPlane
-        # here choose which test plane use
-        Z = TF.firstDeJong(basicPlane)
-
-
-        surface = Axes3D.plot_surface(self.axes, X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-        # self.axes.set_zlim(-1, 1000)
-        # in the end just add canvas to layout
-
         # Apply sizers
         self.setLayout(self.sizer)
 
@@ -56,6 +36,32 @@ class MainWindow(QtGui.QWidget):
         self.resize(560, 420)
         self.setWindowTitle('Embedding in Qt pyqt4')
         self.show()
+
+    """
+    Initialization of MathPlotLib
+    - creates canvas, figure etc.
+    """
+    def initializePlot(self):
+        #draw data
+        # X = np.arange(-3, 3, 0.03)
+        # #Basic plane
+        # basicPlane = np.meshgrid(X, X)
+
+
+        X, Y = TF.MultiPurposeFnc.generate_default()
+        Z = TF.MultiPurposeFnc.graph_z(X, Y, 25, z_corector=5)
+
+        # here choose which test plane use
+        # Z = TF.griewangkova(basicPlane)
+
+        axes = vv.subplot(111)
+        surface = vv.surf(X,Y,Z)
+        surface.colormap = vv.CM_HOT
+        # axes.SetLimits(rangeZ=(0,1000))
+        # axes.daspectAuto = True
+        # surface.
+
+
 
 
     # def _Plot(self):
