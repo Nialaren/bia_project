@@ -1,80 +1,47 @@
-import sys
-from PyQt4 import QtGui, QtCore
 import numpy as np
 import visvis as vv
-import testFunction as TF
+from visvis import Point, Pointset
+vv.figure()
+a = vv.gca()
 
-# Create a visvis app instance, which wraps a qt4 application object.
-# This needs to be done *before* instantiating the main window.
-app = vv.use('pyqt4')
+# Define points for the line
+pp = Pointset(3)
+pp.append(0,0,0); pp.append(0,1,0); pp.append(1,2,0); pp.append(0,2,1)
 
-class MainWindow(QtGui.QWidget):
-    def __init__(self, *args):
-        QtGui.QWidget.__init__(self, *args)
+# Create all solids
+box = vv.solidBox((0,0,0))
+sphere = vv.solidSphere((3,0,0))
+cone = vv.solidCone((6,0,0))
+pyramid = vv.solidCone((9,0,0), N=4) # a cone with 4 faces is a pyramid
+cylinder = vv.solidCylinder((0,3,0),(1,1,2))
+ring = vv.solidRing((3,3,0))
+teapot = vv.solidTeapot((6,3,0))
+line = vv.solidLine(pp+Point(9,3,0), radius = 0.2)
 
-        # Make a panel with a button
-        self.panel = QtGui.QWidget(self)
-        but = QtGui.QPushButton(self.panel)
-        but.setText('Push me')
+# Let's put a face on that cylinder
+# This works because 2D texture coordinates are automatically generated for
+# the sphere, cone, cylinder and ring.
+im = vv.imread('lena.png')
+cylinder.SetTexture(im)
 
-        # Make figure using "self" as a parent
-        Figure = app.GetFigureClass()
-        self.fig = Figure(self)
+# Make the ring green
+ring.faceColor = 'g'
 
-        # Make sizer and embed stuff
-        self.sizer = QtGui.QHBoxLayout(self)
-        self.sizer.addWidget(self.panel, 1)
-        self.sizer.addWidget(self.fig._widget, 2)
+# Make the sphere dull
+sphere.specular = 0
+sphere.diffuse = 0.4
 
-        # Make callback
-        # but.pressed.connect(self._Plot)
+# Show lines in yellow pyramid
+pyramid.faceColor = 'y'
+pyramid.edgeShading = 'plain'
 
-    """
-    Initialization of MathPlotLib
-    - creates canvas, figure etc.
-    """
-    def initializePlot(self):
-        self.axes = self.canvas.figure.add_subplot(111, projection='3d')
-        #draw data
-        X = np.arange(-3, 3, 0.2)
-        #Basic plane
-        basicPlane = np.meshgrid(X, X)
+# Colormap example
 
-        X, Y = basicPlane
-        # here choose which test plane use
-        Z = TF.firstDeJong(basicPlane)
+N = cone._vertices.shape[0]
+cone.SetValues( np.linspace(0,1,N) )
+cone.colormap = vv.CM_JET
 
-
-        surface = Axes3D.plot_surface(self.axes, X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-        # self.axes.set_zlim(-1, 1000)
-        # in the end just add canvas to layout
-
-        # Apply sizers
-        self.setLayout(self.sizer)
-
-        # Finish
-        self.resize(560, 420)
-        self.setWindowTitle('Embedding in Qt pyqt4')
-        self.show()
-
-
-    # def _Plot(self):
-    #
-    #     # Make sure our figure is the active one.
-    #     # If only one figure, this is not necessary.
-    #     #vv.figure(self.fig.nr)
-    #
-    #     # Clear it
-    #     vv.clf()
-    #
-    #     # Plot
-    #     vv.plot([1,2,3,1,6])
-    #     vv.legend(['this is a line'])
-    #     #self.fig.DrawNow()
-
-
-
-if __name__ == '__main__':
-    qtApp = QtGui.QApplication(sys.argv)
-    m = MainWindow()
-    qtApp.exec_()
+# Show title and enter main loop
+vv.title('All mesh objects that can be created out of the box')
+app = vv.use()
+app.Run()

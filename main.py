@@ -6,56 +6,44 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
-import protokol_2 as TF
+import testFunction as TF
+from GUI import Ui_MainWindow
+from PyQt4.QtGui import *
+from PyQt4.QtCore import Qt, SIGNAL
 
 
-
-class Form(QtGui.QWidget):
-    def __init__(self):
-        super(Form, self).__init__()
-        # window settings
-        self.setWindowTitle("Function Evaluator")
-
-        # Adding main layout
-        self.layout = QtGui.QHBoxLayout(self)
-        self.setLayout(self.layout)
-
-        # Adding Control Panel layout
-        wrapper = QtGui.QWidget()
-        self.layout.addWidget(wrapper)
-        cpLayout = QtGui.QVBoxLayout()
-        wrapper.setLayout(cpLayout)
-
-        mainLabel = QtGui.QLabel("Control panel")
-        mainLabel.setAlignment(QtCore.Qt.AlignTop)
-
-        functionSelector = QtGui.QComboBox()
-        functionSelector.addItems(['First De Jong', 'Rosenbrocks Saddle', 'Third De Jong', 'Forth De Jong',
-                     'Rastrigin', 'Schewefel', 'Griewangkova', 'Sine Envelope', 'Sine Wave'])
-        functionSelector.connect(functionSelector, QtCore.SIGNAL("currentIndexChanged(int)"), self, QtCore.SLOT("updateUI(int)"))
-
-        # Add all widgets into layout
-        cpLayout.addWidget(mainLabel)
-        cpLayout.addWidget(functionSelector)
-
-
+class Window(QMainWindow, Ui_MainWindow):
+    def __init__(self, parent = None):
+        QMainWindow.__init__(self,parent)
+        Ui_MainWindow.__init__(self, parent)
+        self.setupUi(self)
 
         fig = Figure()
-        self.canvas = FigureCanvas(fig)
-        self.canvas.setParent(self)
-        self.layout.addWidget(self.canvas)
-        # create our plot
+        self.graphicsView.canvas = FigureCanvas(fig)
+        layout = QVBoxLayout(self.graphicsView)
+        self.graphicsView.setLayout(layout)
+        layout.addWidget(self.graphicsView.canvas)
+
+        # self.spinbox = QtGui.QSpinBox()
+        # spin_layout = QVBoxLayout(self.widget)
+        # spin_layout.addWidget(self.spinbox)
+        self.dial_2.valueChanged.connect(self.initializePlot)
+        self.dial.valueChanged.connect(self.initializePlot)
+
+        # self.button = QPushButton("submit", self.centralWidget)
+
+        self.chooseFunction.connect(self.comboBox, QtCore.SIGNAL("currentIndexChanged(int)"), self, QtCore.SLOT("updateUI(int)"))
+
         self.initializePlot()
 
-
-    """
-    Initialization of MathPlotLib
-    - creates canvas, figure etc.
-    """
     def initializePlot(self):
-        self.axes = self.canvas.figure.add_subplot(111, projection='3d')
+        self.axes = self.graphicsView.canvas.figure.add_subplot(111, projection='3d')
         #draw data
-        X = np.arange(-3, 3, 0.2)
+
+        valueX = self.dial_2.value();
+        valueY = self.dial.value();
+        print '%s, %s' %(valueX, valueY)
+        X = np.arange(-valueX, valueY, 0.2)
         #Basic plane
         basicPlane = np.meshgrid(X, X)
 
@@ -71,7 +59,7 @@ class Form(QtGui.QWidget):
 
     @QtCore.pyqtSlot(int)
     def updateUI(self, index):
-        # print self.figure.subplotpars.
+        # print self.figure.subplotpars./
         # print 'test %s' %(index)
 
 
@@ -91,10 +79,11 @@ class Form(QtGui.QWidget):
         # self.axes.clear()
         self.surf.remove()
         self.surf = Axes3D.plot_surface(self.axes, X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-        self.canvas.draw()
+        self.graphicsView.canvas.draw()
 
 if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
-    form = Form()
-    form.show()
-    app.exec_()
+    app = QApplication(sys.argv)
+    ui = Window()
+
+    ui.show()
+    sys.exit(app.exec_())
