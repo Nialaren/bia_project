@@ -36,6 +36,11 @@ class Window(QMainWindow, Ui_MainWindow):
 
         self.initializePlot()
 
+
+    """
+    Initialization of MathPlotLib
+    - creates canvas, figure etc.
+    """
     def initializePlot(self):
         self.axes = self.graphicsView.canvas.figure.add_subplot(111, projection='3d')
         #draw data

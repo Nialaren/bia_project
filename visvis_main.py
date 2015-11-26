@@ -1,47 +1,75 @@
+import sys
+from PyQt4 import QtGui, QtCore
 import numpy as np
 import visvis as vv
-from visvis import Point, Pointset
-vv.figure()
-a = vv.gca()
+import testFunction as TF
 
-# Define points for the line
-pp = Pointset(3)
-pp.append(0,0,0); pp.append(0,1,0); pp.append(1,2,0); pp.append(0,2,1)
+# Create a visvis app instance, which wraps a qt4 application object.
+# This needs to be done *before* instantiating the main window.
+app = vv.use('pyqt4')
 
-# Create all solids
-box = vv.solidBox((0,0,0))
-sphere = vv.solidSphere((3,0,0))
-cone = vv.solidCone((6,0,0))
-pyramid = vv.solidCone((9,0,0), N=4) # a cone with 4 faces is a pyramid
-cylinder = vv.solidCylinder((0,3,0),(1,1,2))
-ring = vv.solidRing((3,3,0))
-teapot = vv.solidTeapot((6,3,0))
-line = vv.solidLine(pp+Point(9,3,0), radius = 0.2)
+class MainWindow(QtGui.QWidget):
+    def __init__(self, *args):
+        QtGui.QWidget.__init__(self, *args)
 
-# Let's put a face on that cylinder
-# This works because 2D texture coordinates are automatically generated for
-# the sphere, cone, cylinder and ring.
-im = vv.imread('lena.png')
-cylinder.SetTexture(im)
+        # Make a panel with a button
+        self.panel = QtGui.QWidget(self)
+        self.panelLayout = QtGui.QVBoxLayout()
+        self.panel.setLayout(self.panelLayout)
+        # QtGui.QLineEdit(self.panel)
+        # mpfWidget = TF.MultiPurposeFnc.get_widget(self.panel)
+        # but = QtGui.QPushButton(self.panel)
+        # but.setText('Push me')
 
-# Make the ring green
-ring.faceColor = 'g'
+        # Make figure using "self" as a parent
+        Figure = app.GetFigureClass()
+        self.fig = Figure(self)
 
-# Make the sphere dull
-sphere.specular = 0
-sphere.diffuse = 0.4
+        # Make sizer and embed stuff
+        self.sizer = QtGui.QHBoxLayout(self)
+        self.sizer.addWidget(self.panel, 1)
+        self.sizer.addWidget(self.fig._widget, 2)
+        #
+        self.initializePlot()
+        # Make callback
+        # Apply sizers
+        self.setLayout(self.sizer)
 
-# Show lines in yellow pyramid
-pyramid.faceColor = 'y'
-pyramid.edgeShading = 'plain'
+        # Finish
+        self.resize(560, 420)
+        self.setWindowTitle('Embedding in Qt pyqt4')
+        self.show()
 
-# Colormap example
+    """
+    Initialization of MathPlotLib
+    - creates canvas, figure etc.
+    """
+    def initializePlot(self):
+        self.widget = TF.MultiPurposeFnc.get_widget()
+        self.widget.onBtnClick(self.testFn)
+        self.panelLayout.addWidget(self.widget)
 
-N = cone._vertices.shape[0]
-cone.SetValues( np.linspace(0,1,N) )
-cone.colormap = vv.CM_JET
+        X, Y = TF.MultiPurposeFnc.generate_default()
+        Z = TF.MultiPurposeFnc.graph_z(X, Y, 25, z_corector=5)
 
-# Show title and enter main loop
-vv.title('All mesh objects that can be created out of the box')
-app = vv.use()
-app.Run()
+        # here choose which test plane use
+        # Z = TF.griewangkova(basicPlane)
+
+        self.axes = vv.subplot(111)
+        surface = vv.surf(X,Y,Z)
+
+        surface.colormap = vv.CM_HOT
+
+    def testFn(self):
+        newF =  self.widget.getFrequency()
+        vv.clf()
+        X, Y = TF.MultiPurposeFnc.generate_default()
+        Z = TF.MultiPurposeFnc.graph_z(X, Y, float(newF), z_corector=5)
+        surface = vv.surf(X,Y,Z)
+        surface.colormap = vv.CM_HOT
+
+
+if __name__ == '__main__':
+    qtApp = QtGui.QApplication(sys.argv)
+    m = MainWindow()
+    qtApp.exec_()
