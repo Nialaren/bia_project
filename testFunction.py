@@ -1,3 +1,4 @@
+from PyQt4 import QtCore, QtGui
 import numpy as np
 import math
 
@@ -123,3 +124,25 @@ class MultiPurposeFnc(object):
     def generate_default():
         x = np.arange(MultiPurposeFnc.MIN_X, MultiPurposeFnc.MAX_X, MultiPurposeFnc.DEFAULT_STEP)
         return (x,x)
+
+
+
+    @staticmethod
+    def get_widget(parent=None):
+        root = QtGui.QWidget(parent)
+        layout = QtGui.QFormLayout()
+
+        #Controlls
+        frequencyInput = QtGui.QLineEdit()
+        submitBtn = QtGui.QPushButton()
+        submitBtn.setText('apply')
+        label = QtGui.QLabel('frequency')
+
+        # add all to layout
+        layout.addRow(label, frequencyInput)
+        layout.addWidget(submitBtn)
+        root.setLayout(layout)
+
+        root.onBtnClick = lambda fn: submitBtn.pressed.connect(fn)
+        root.getFrequency = frequencyInput.text
+        return root

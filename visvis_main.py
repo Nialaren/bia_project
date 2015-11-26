@@ -14,8 +14,12 @@ class MainWindow(QtGui.QWidget):
 
         # Make a panel with a button
         self.panel = QtGui.QWidget(self)
-        but = QtGui.QPushButton(self.panel)
-        but.setText('Push me')
+        self.panelLayout = QtGui.QVBoxLayout()
+        self.panel.setLayout(self.panelLayout)
+        # QtGui.QLineEdit(self.panel)
+        # mpfWidget = TF.MultiPurposeFnc.get_widget(self.panel)
+        # but = QtGui.QPushButton(self.panel)
+        # but.setText('Push me')
 
         # Make figure using "self" as a parent
         Figure = app.GetFigureClass()
@@ -25,10 +29,9 @@ class MainWindow(QtGui.QWidget):
         self.sizer = QtGui.QHBoxLayout(self)
         self.sizer.addWidget(self.panel, 1)
         self.sizer.addWidget(self.fig._widget, 2)
-
+        #
         self.initializePlot()
         # Make callback
-        # but.pressed.connect(self._Plot)
         # Apply sizers
         self.setLayout(self.sizer)
 
@@ -42,11 +45,9 @@ class MainWindow(QtGui.QWidget):
     - creates canvas, figure etc.
     """
     def initializePlot(self):
-        #draw data
-        # X = np.arange(-3, 3, 0.03)
-        # #Basic plane
-        # basicPlane = np.meshgrid(X, X)
-
+        self.widget = TF.MultiPurposeFnc.get_widget()
+        self.widget.onBtnClick(self.testFn)
+        self.panelLayout.addWidget(self.widget)
 
         X, Y = TF.MultiPurposeFnc.generate_default()
         Z = TF.MultiPurposeFnc.graph_z(X, Y, 25, z_corector=5)
@@ -54,30 +55,18 @@ class MainWindow(QtGui.QWidget):
         # here choose which test plane use
         # Z = TF.griewangkova(basicPlane)
 
-        axes = vv.subplot(111)
+        self.axes = vv.subplot(111)
+        surface = vv.surf(X,Y,Z)
+
+        surface.colormap = vv.CM_HOT
+
+    def testFn(self):
+        newF =  self.widget.getFrequency()
+        vv.clf()
+        X, Y = TF.MultiPurposeFnc.generate_default()
+        Z = TF.MultiPurposeFnc.graph_z(X, Y, float(newF), z_corector=5)
         surface = vv.surf(X,Y,Z)
         surface.colormap = vv.CM_HOT
-        # axes.SetLimits(rangeZ=(0,1000))
-        # axes.daspectAuto = True
-        # surface.
-
-
-
-
-    # def _Plot(self):
-    #
-    #     # Make sure our figure is the active one.
-    #     # If only one figure, this is not necessary.
-    #     #vv.figure(self.fig.nr)
-    #
-    #     # Clear it
-    #     vv.clf()
-    #
-    #     # Plot
-    #     vv.plot([1,2,3,1,6])
-    #     vv.legend(['this is a line'])
-    #     #self.fig.DrawNow()
-
 
 
 if __name__ == '__main__':
