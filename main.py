@@ -30,15 +30,8 @@ class Window(QMainWindow, Ui_MainWindow):
         # self.doubleSpinBox.valueChanged.connect(self.updatePlot)
         # self.doubleSpinBox_2.valueChanged.connect(self.updatePlot)
 
-        # self.spinbox = QtGui.QSpinBox()
-        # spin_layout = QVBoxLayout(self.widget)
-        # spin_layout.addWidget(self.spinbox)
-        # self.horizontalSlider.connect(self.horizontalSlider, QtCore.SIGNAL("currentIndexChanged(int)"), self, QtCore.SLOT("updateUI(int)"))
-        # self.horizontalSlider_2.valueChanged.connect(self.updateUI)
-
-        # self.button = QPushButton("submit", self.centralWidget)
-
-        self.chooseFunction.connect(self.comboBox, QtCore.SIGNAL("currentIndexChanged(int)"), self, QtCore.SLOT("updatePlot(int)"))
+        self.change.clicked.connect(self.updatePlot)
+        # self.chooseFunction.connect(self.comboBox, QtCore.SIGNAL("currentIndexChanged(int)"), self, QtCore.SLOT("updatePlot(int)"))
         # self.horizontalSlider.valueChanged("choosingFunction")
         # self.horizontalSlider_2.valueChanged("choosingFunction")
         self.initializePlot()
@@ -50,11 +43,8 @@ class Window(QMainWindow, Ui_MainWindow):
     """
     def initializePlot(self):
         self.axes = self.graphicsView.canvas.figure.add_subplot(111, projection='3d')
-        #draw data
 
-        valueX = self.doubleSpinBox.value();
-        valueY = self.doubleSpinBox_2.value();
-        print '%s, %s' %(valueX, valueY)
+        #draw data
         X = np.arange(-3, 3, 0.2)
         #Basic plane
         basicPlane = np.meshgrid(X, X)
@@ -68,33 +58,18 @@ class Window(QMainWindow, Ui_MainWindow):
         # self.axes.set_zlim(-1, 1000)
         # in the end just add canvas to layout
 
-
-
-    # def updatePlot(self, val):
-    #     hs1 = self.doubleSpinBox.val
-    #     hs2 = self.doubleSpinBox_2.val
-    #
-    #     X = np.arange(hs1, hs2, 0.25)
-    #     #Basic plane
-    #     basicPlane = np.meshgrid(X, X)
-    #
-    #     self.surf.remove()
-    #     self.surf = Axes3D.plot_surface(self.axes, X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-    #     self.graphicsView.canvas.draw()
-    #     # l.set_ydata(hs1*hs2(2*pi*hs2*t))
-    #     # show()
-
     @QtCore.pyqtSlot(int)
-    def updatePlot(self, index):
+    def updatePlot(self):
         # changed_slider = self.sender()
         # print self.figure.subplotpars./
         # print 'test %s' %(index)
-        hs1 = self.doubleSpinBox.value()
-        hs2 = self.doubleSpinBox_2.value()
+        x1 = self.doubleSpinBox.value()
+        x2 = self.doubleSpinBox_2.value()
+        x3 = self.doubleSpinBox_3.value()
+        function = self.comboBox.currentIndex()
 
-        # print '%s, %s' %(valueX, valueY)
         #draw data
-        X = np.arange(hs1, hs2, 0.25)
+        X = np.arange(x1, x2, x3)
 
         #Basic plane
         basicPlane = np.meshgrid(X, X)
@@ -104,7 +79,7 @@ class Window(QMainWindow, Ui_MainWindow):
                      TF.rastrigin(basicPlane), TF.schewefel(basicPlane), TF.griewangkova(basicPlane), TF.sineEnvelope(basicPlane),
                      TF.sineWave(basicPlane)]
         # here choose which test plane use
-        Z = functions[index]
+        Z = functions[function]
 
         # self.axes.clear()
         self.surf.remove()
