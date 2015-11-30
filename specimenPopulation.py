@@ -24,7 +24,7 @@ def generate_specimen(specimen_template):
 
     specimen = []
     for att in specimen_template:
-        att_type = att = att[0]
+        att_type = att[0]
         low = att[1][0]
         high = att[1][1]
 

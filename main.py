@@ -1,16 +1,13 @@
 import sys
 import numpy as np
-import time
-from PyQt4 import QtGui, QtCore
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-import testFunction as TF
-from GUI import Ui_MainWindow
 from PyQt4.QtGui import *
-from PyQt4.QtCore import Qt, SIGNAL
-from functools import partial
+from PyQt4 import QtCore
+from GUI import Ui_MainWindow
+
+from PlotHandlers.matplotlibPlotHandler import PlotHandler
+# from PlotHandlers.visvisPlotHandler import PlotHandler
+import testFunction as TF
+import specimenPopulation
 
 
 class Window(QMainWindow, Ui_MainWindow):
@@ -20,71 +17,85 @@ class Window(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
         #canvas with graph
-        fig = Figure()
-        self.graphicsView.canvas = FigureCanvas(fig)
         layout = QVBoxLayout(self.graphicsView)
         self.graphicsView.setLayout(layout)
-        layout.addWidget(self.graphicsView.canvas)
 
-        #spinBoxs
+        # create plotHandler
+        self.plotHandler = PlotHandler(self)
+        layout.addWidget(self.plotHandler.get_widget())
+
+        # spinBoxs
         # self.doubleSpinBox.valueChanged.connect(self.updatePlot)
         # self.doubleSpinBox_2.valueChanged.connect(self.updatePlot)
 
-        self.change.clicked.connect(self.updatePlot)
+        self.change.clicked.connect(self.update_plot)
+        self.generateButton.clicked.connect(self.generate_population)
         # self.chooseFunction.connect(self.comboBox, QtCore.SIGNAL("currentIndexChanged(int)"), self, QtCore.SLOT("updatePlot(int)"))
         # self.horizontalSlider.valueChanged("choosingFunction")
         # self.horizontalSlider_2.valueChanged("choosingFunction")
-        self.initializePlot()
+
+        self.testFunctions = None
+        self.activeCostFunction = None
+        self.actualPopulation = None
+        self.initialize_plot()
 
 
     """
-    Initialization of MathPlotLib
-    - creates canvas, figure etc.
+    Initialization of default plot
+    - adds some data to plot.
     """
-    def initializePlot(self):
-        self.axes = self.graphicsView.canvas.figure.add_subplot(111, projection='3d')
+    def initialize_plot(self):
+        self.testFunctions = [TF.firstDeJong, TF.rosenbrocksSaddle, TF.thirdDeJong, TF.forthDeJong,
+                     TF.rastrigin, TF.schewefel, TF.griewangkova, TF.sineEnvelope,
+                     TF.sineWave]
+        self.activeCostFunction = TF.firstDeJong
+        # raw data
+        x = np.arange(-3, 3, 0.2)
+        # Basic plane
+        basic_plane = np.meshgrid(x, x)
 
-        #draw data
-        X = np.arange(-3, 3, 0.2)
-        #Basic plane
-        basicPlane = np.meshgrid(X, X)
+        x, y = basic_plane
+        z = self.activeCostFunction(basic_plane)
+        self.plotHandler.updatePlot(x, y, z)
 
-        X, Y = basicPlane
-        # here choose which test plane use
-        Z = TF.firstDeJong(basicPlane)
-
-
-        self.surf = Axes3D.plot_surface(self.axes, X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-        # self.axes.set_zlim(-1, 1000)
-        # in the end just add canvas to layout
-
-    @QtCore.pyqtSlot(int)
-    def updatePlot(self):
-        # changed_slider = self.sender()
-        # print self.figure.subplotpars./
-        # print 'test %s' %(index)
+    @QtCore.pyqtSlot()
+    def update_plot(self):
         x1 = self.doubleSpinBox.value()
         x2 = self.doubleSpinBox_2.value()
         x3 = self.doubleSpinBox_3.value()
-        function = self.comboBox.currentIndex()
+        self.activeCostFunction = self.testFunctions[self.comboBox.currentIndex()]
+        # raw data
+        x = np.arange(x1, x2, x3)
+        # Basic plane
+        basic_plane = np.meshgrid(x, x)
 
-        #draw data
-        X = np.arange(x1, x2, x3)
+        x, y = basic_plane
+        z = self.activeCostFunction(basic_plane)
+        self.plotHandler.updatePlot(x, y, z)
 
-        #Basic plane
-        basicPlane = np.meshgrid(X, X)
-        X,Y = basicPlane
+    @QtCore.pyqtSlot()
+    def generate_population(self):
+        n = int(self.lineEdit_2.text())
+        min_const = self.doubleSpinBox.value()
+        max_const = self.doubleSpinBox_2.value()
+        only_integer = self.int_2.isChecked()
+        data_type = 'real'
+        if only_integer:
+            data_type = 'integer'
 
-        functions = [TF.firstDeJong(basicPlane), TF.rosenbrocksSaddle(basicPlane), TF.thirdDeJong(basicPlane), TF.forthDeJong(basicPlane),
-                     TF.rastrigin(basicPlane), TF.schewefel(basicPlane), TF.griewangkova(basicPlane), TF.sineEnvelope(basicPlane),
-                     TF.sineWave(basicPlane)]
-        # here choose which test plane use
-        Z = functions[function]
+        specimen_template = [(data_type, (min_const, max_const))] * 2
+        new_population = specimenPopulation.generate_population(specimen_template, n)
+        self.actualPopulation = self.apply_cost_function(new_population)
+        # Show population
+        self.plotHandler.updatePopulation(self.actualPopulation)
 
-        # self.axes.clear()
-        self.surf.remove()
-        self.surf = Axes3D.plot_surface(self.axes, X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-        self.graphicsView.canvas.draw()
+    def apply_cost_function(self, population):
+        for specimen in population:
+            fitness = self.activeCostFunction(specimen)
+            specimen.append(fitness)
+        return population
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
