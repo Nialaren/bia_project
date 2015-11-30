@@ -125,8 +125,6 @@ class MultiPurposeFnc(object):
         x = np.arange(MultiPurposeFnc.MIN_X, MultiPurposeFnc.MAX_X, MultiPurposeFnc.DEFAULT_STEP)
         return (x,x)
 
-
-
     @staticmethod
     def get_widget(parent=None):
         root = QtGui.QWidget(parent)

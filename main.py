@@ -6,6 +6,7 @@ from GUI import Ui_MainWindow
 
 from PlotHandlers.matplotlibPlotHandler import PlotHandler
 # from PlotHandlers.visvisPlotHandler import PlotHandler
+# from PlotHandlers.pyqtgraphPlotHandler import PlotHandler
 import testFunction as TF
 import specimenPopulation
 
@@ -44,11 +45,9 @@ class Window(QMainWindow, Ui_MainWindow):
         self.activeCostFunction = TF.firstDeJong
         # raw data
         x = np.arange(-3, 3, 0.2)
-        # Basic plane
-        basic_plane = np.meshgrid(x, x)
 
-        x, y = basic_plane
-        z = self.activeCostFunction(basic_plane)
+        y = x
+        z = self.activeCostFunction(np.meshgrid(x, x))
         self.plotHandler.updatePlot(x, y, z)
 
     @QtCore.pyqtSlot()
@@ -59,11 +58,9 @@ class Window(QMainWindow, Ui_MainWindow):
         self.activeCostFunction = self.testFunctions[self.chooseFunctionComboBox.currentIndex()]
         # raw data
         x = np.arange(x1, x2, x3)
-        # Basic plane
-        basic_plane = np.meshgrid(x, x)
 
-        x, y = basic_plane
-        z = self.activeCostFunction(basic_plane)
+        y = x
+        z = self.activeCostFunction(np.meshgrid(x, x))
         self.plotHandler.updatePlot(x, y, z)
 
     @QtCore.pyqtSlot()

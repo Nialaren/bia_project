@@ -19,8 +19,9 @@ class PlotHandler(object):
 
     def updatePlot(self, X, Y, Z):
         self.activePlot = (X,Y,Z)
+        x, y = np.meshgrid(X,Y)
         vv.clf()
-        surface = vv.surf(X,Y,Z)
+        surface = vv.surf(x,y,Z)
         surface.colormap = vv.CM_HOT
 
     def updateSpecimens(self, data):

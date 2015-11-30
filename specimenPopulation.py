@@ -17,7 +17,7 @@ def generate_population(specimen_template, n):
 
 def generate_specimen(specimen_template):
     """ Specimen generator
-    Generates specimen accoriding to given template
+    Generates specimen according to given template
 
     :param specimen_template - [(real, (low, high)),...]
     """

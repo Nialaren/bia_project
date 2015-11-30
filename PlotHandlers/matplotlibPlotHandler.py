@@ -3,6 +3,7 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
+import numpy as np
 
 class PlotHandler(object):
     def __init__(self, parent):
@@ -21,30 +22,26 @@ class PlotHandler(object):
 
     def updatePlot(self, X, Y, Z):
         self.activePlot = (X,Y,Z)
+        x, y = np.meshgrid(X,Y)
 
         if self.surface is not None:
             self.surface.remove()
 
-        self.surface = Axes3D.plot_surface(self.axes, X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+        self.surface = Axes3D.plot_surface(self.axes, x, y, Z, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False, shade=False, alpha=0.5)
         self.canvas.draw()
 
     def updatePopulation(self, population):
-        # X,Y,Z = self.activePlot
-        #
-        # if self.surface is not None:
-        #     self.surface.remove()
-        #
-        # self.surface = Axes3D.plot_surface(self.axes, X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-
-
         self.activePopulation = population
         x, y, z = self.prepare_population_data(population)
 
         if self.scatter is not None:
             self.scatter.remove()
 
-        self.scatter = self.axes.scatter(x, y, z, c="r", marker="o", s=40)
-        # self.canvas.draw()
+        self.scatter = Axes3D.scatter(self.axes, x, y, z, c="r", marker="o", s=40)
+        self.surface.set_zorder(2)
+        self.scatter.set_zorder(100)
+        self.scatter.set_alpha(1.0)
+        self.canvas.draw()
 
     def prepare_population_data(self, population):
         x = []
@@ -53,5 +50,5 @@ class PlotHandler(object):
         for p in population:
             x.append(p[0])
             y.append(p[1])
-            z.append(p[2]+0.5)
+            z.append(p[2])
         return (x, y, z)
