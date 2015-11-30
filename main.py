@@ -53,9 +53,9 @@ class Window(QMainWindow, Ui_MainWindow):
 
     @QtCore.pyqtSlot()
     def update_plot(self):
-        x1 = self.axisXdoubleSpinBox.value()
-        x2 = self.axisYdoubleSpinBox.value()
-        x3 = self.axisZdoubleSpinBox.value()
+        x1 = self.mindoubleSpinBox.value()
+        x2 = self.maxdoubleSpinBox.value()
+        x3 = self.pointsdoubleSpinBox.value()
         self.activeCostFunction = self.testFunctions[self.chooseFunctionComboBox.currentIndex()]
         # raw data
         x = np.arange(x1, x2, x3)
@@ -69,8 +69,8 @@ class Window(QMainWindow, Ui_MainWindow):
     @QtCore.pyqtSlot()
     def generate_population(self):
         n = int(self.numOfSpecimenSpinBox.text())
-        min_const = self.axisXdoubleSpinBox.value()
-        max_const = self.axisYdoubleSpinBox.value()
+        min_const = self.mindoubleSpinBox.value()
+        max_const = self.maxdoubleSpinBox.value()
         only_integer = self.intCheckBox.isChecked()
         data_type = 'real'
         if only_integer:
