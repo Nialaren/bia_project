@@ -24,15 +24,8 @@ class Window(QMainWindow, Ui_MainWindow):
         self.plotHandler = PlotHandler(self)
         layout.addWidget(self.plotHandler.get_widget())
 
-        # spinBoxs
-        # self.doubleSpinBox.valueChanged.connect(self.updatePlot)
-        # self.doubleSpinBox_2.valueChanged.connect(self.updatePlot)
-
-        self.change.clicked.connect(self.update_plot)
+        self.changeButton.clicked.connect(self.update_plot)
         self.generateButton.clicked.connect(self.generate_population)
-        # self.chooseFunction.connect(self.comboBox, QtCore.SIGNAL("currentIndexChanged(int)"), self, QtCore.SLOT("updatePlot(int)"))
-        # self.horizontalSlider.valueChanged("choosingFunction")
-        # self.horizontalSlider_2.valueChanged("choosingFunction")
 
         self.testFunctions = None
         self.activeCostFunction = None
@@ -60,10 +53,10 @@ class Window(QMainWindow, Ui_MainWindow):
 
     @QtCore.pyqtSlot()
     def update_plot(self):
-        x1 = self.doubleSpinBox.value()
-        x2 = self.doubleSpinBox_2.value()
-        x3 = self.doubleSpinBox_3.value()
-        self.activeCostFunction = self.testFunctions[self.comboBox.currentIndex()]
+        x1 = self.axisXdoubleSpinBox.value()
+        x2 = self.axisYdoubleSpinBox.value()
+        x3 = self.axisZdoubleSpinBox.value()
+        self.activeCostFunction = self.testFunctions[self.chooseFunctionComboBox.currentIndex()]
         # raw data
         x = np.arange(x1, x2, x3)
         # Basic plane
@@ -75,21 +68,21 @@ class Window(QMainWindow, Ui_MainWindow):
 
     @QtCore.pyqtSlot()
     def generate_population(self):
-        n = int(self.lineEdit_2.text())
-        min_const = self.doubleSpinBox.value()
-        max_const = self.doubleSpinBox_2.value()
-        only_integer = self.int_2.isChecked()
+        n = int(self.numOfSpecimenSpinBox.text())
+        min_const = self.axisXdoubleSpinBox.value()
+        max_const = self.axisYdoubleSpinBox.value()
+        only_integer = self.intCheckBox.isChecked()
         data_type = 'real'
         if only_integer:
             data_type = 'integer'
 
         specimen_template = [(data_type, (min_const, max_const))] * 2
         new_population = specimenPopulation.generate_population(specimen_template, n)
-        self.actualPopulation = self.apply_cost_function(new_population)
+        self.actualPopulation = self.calculateFitness(new_population)
         # Show population
         self.plotHandler.updatePopulation(self.actualPopulation)
 
-    def apply_cost_function(self, population):
+    def calculateFitness(self, population):
         for specimen in population:
             fitness = self.activeCostFunction(specimen)
             specimen.append(fitness)
