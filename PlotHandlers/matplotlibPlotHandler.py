@@ -7,8 +7,9 @@ import numpy as np
 
 class PlotHandler(object):
     def __init__(self, parent):
-        self.figure = Figure()
+        self.figure = Figure(tight_layout=True)
         self.canvas = FigureCanvas(self.figure)
+        self.canvas.setContentsMargins(0,0,0,0)
         self.axes = self.figure.add_subplot(111, projection='3d')
         self.canvas.setParent(parent)
         self.activePlot = None

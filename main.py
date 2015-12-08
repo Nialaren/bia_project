@@ -19,8 +19,8 @@ class Window(QMainWindow, Ui_MainWindow):
 
         #canvas with graph
         layout = QVBoxLayout(self.graphicsView)
+        layout.setContentsMargins(0,0,0,0)
         self.graphicsView.setLayout(layout)
-
         # create plotHandler
         self.plotHandler = PlotHandler(self)
         layout.addWidget(self.plotHandler.get_widget())
@@ -28,9 +28,11 @@ class Window(QMainWindow, Ui_MainWindow):
         self.changeButton.clicked.connect(self.update_plot)
         self.generateButton.clicked.connect(self.generate_population)
 
+        # Evolution algorithm important properties
         self.testFunctions = None
         self.activeCostFunction = None
         self.actualPopulation = None
+        # Plot initialization
         self.initialize_plot()
 
 
@@ -65,7 +67,7 @@ class Window(QMainWindow, Ui_MainWindow):
 
     @QtCore.pyqtSlot()
     def generate_population(self):
-        n = int(self.numOfSpecimenSpinBox.text())
+        n = self.numOfSpecimenSpinBox.value()
         min_const = self.mindoubleSpinBox.value()
         max_const = self.maxdoubleSpinBox.value()
         only_integer = self.intCheckBox.isChecked()
