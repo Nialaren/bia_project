@@ -1,63 +1,109 @@
-import specimenPopulation
+import PopulationUtils
 import random as rand
+from Specimen import Specimen
 import numpy as np
 
-
-def neighborhood(x, d):
-    N = []
-    for i in range(10):
-        new = []
-        for p in x:
-            new.append(rand.random() * (p+d - p-d) + (p-d))
-        N.append(new)
-    return N
-
-def blind_algorithm(iterations, best, best_fitness, specimen_template, f_cost):
-    for i in range(iterations):
-        arg = specimenPopulation.generate_specimen(specimen_template)
-        fitness = f_cost(arg)
-        if fitness < best_fitness:
-            best_fitness = fitness
-            best = arg
-    return best
-
-class ClimbingHillAlgorithm(object):
-    def __init__(self, pop, costFn, stepCallback):
-        self.population = pop
-        self.stepCallback = stepCallback
-        self.costFunction = costFn
+class AbstractAlgorithm(object):
+    """
+    Defines abstract algorithm structure
+    """
+    def __init__(self, initialPopulation, fitnessFunction, updateCallback):
+        self.population = initialPopulation
+        self.updateCallback = updateCallback
+        self.fitnessFunction = fitnessFunction
         self.iteration = 0
+        self.shouldStop = False
 
         # Algorithm related variables
-        self.bestX = self.population
-
-    def get_widget(self):
-        pass
-
-    def step(self):
-        for i in range(len(self.population)):
-            neighbours = neighborhood(self.population[i], 1)
-            best = neighbours[0]
-            for nb in neighbours:
-                if(self.costFunction(nb) > self.costFunction(best)):
-                    best = nb
-
-            if self.costFunction(best) > self.costFunction(self.bestX[i]):
-                self.bestX[i] = best
-            self.population[i] = best
-        self.iteration += 1
-        self.stepCallback(self.population, self.bestX)
+        self.bestPopulation = np.array(self.population).copy()
 
     def reset(self):
         self.iteration = 0
 
-    def set_step_callback(self, fn):
-        self.stepCallback = fn
+    def setUpdateCallback(self, fn):
+        self.updateCallback = fn
 
-    def set_population(self, pop):
+    def setPopulation(self, pop):
         self.reset()
         self.population = pop
 
-    def set_cost_fn(self, fn):
+    def setFitnessFunction(self, fn):
         self.reset()
-        self.costFunction = fn
+        self.fitnessFunction = fn
+
+    def getWidget(self):
+        pass
+
+    def step(self):
+        pass
+
+
+
+
+class ClimbingHillAlgorithm(AbstractAlgorithm):
+    def __init__(self, initialPopulation, fitnessFunction, updateCallback):
+        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, updateCallback)
+
+    def get_widget(self):
+        pass
+
+
+    def step(self):
+        fn = self.fitnessFunction
+        # For each specimen in population do one evolution cycle
+        for i in range(len(self.population)):
+            x = self.population[i]
+            # we assume that last parameter is fitness
+            N = neighborhood(x[:2], 1, fitnessFn=self.fitnessFunction) # or x[:(len(x)-1)]
+            best = N[0]
+            # Find best specimen in neighbourhood
+            for nb in N:
+                if(nb[2] > best[2]):
+                    best = nb
+            if best[2] > self.bestPopulation[i][2]:
+                self.bestPopulation[i] = best
+            self.population[i] = best
+        self.iteration += 1
+
+    def run(self, iterations=10):
+        # TODO: get iterations from widget
+        # iterations = widget.get()
+        while(self.iteration < iterations):
+            self.step()
+            self.updateCallback(self.population, self.bestPopulation)
+            # Timeout
+            # if stop button hitted
+            if self.shouldStop is True:
+                self.shouldStop = False
+                break
+            self.iteration +=1
+
+
+
+def neighborhood(x, d, fitnessFn=None, n=10):
+    """
+    Generates randomly neighbourhood of specimen "x" in given diameter "d"
+    :param x: specimen
+    :param d: area diameter
+    :param n: number of neighbours to generate default=10
+    :return: list of neighbours
+    """
+    neighbours = []
+    for i in range(n):
+        new = []
+        for dimension in x:
+            new.append(rand.random() * (dimension+d - dimension-d) + (dimension-d))
+        if(fitnessFn is not None):
+            new.append(fitnessFn(new))
+        neighbours.append(new)
+    return neighbours
+
+
+# def blind_algorithm(iterations, best, best_fitness, specimen_template, f_cost):
+#     for i in range(iterations):
+#         arg = specimenPopulation.generate_specimen(specimen_template)
+#         fitness = f_cost(arg)
+#         if fitness < best_fitness:
+#             best_fitness = fitness
+#             best = arg
+#     return best

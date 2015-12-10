@@ -1,7 +1,8 @@
 import random as rand
+from Specimen import Specimen
 
 
-def generate_population(specimen_template, n):
+def generate_population(specimen_template, n, cost_function=None):
     """ Population generator
     Generates population accoriding to given template
 
@@ -12,18 +13,34 @@ def generate_population(specimen_template, n):
     population = [None] * n
     for i in range(n):
         population[i] = generate_specimen(specimen_template)
+        if(cost_function != None):
+            population[i].append(cost_function(population[i]))
     return population
 
 
-def generate_specimen(specimen_template):
+def generate_specimen_population(template, n, cost_function=None):
+    """ Population generator as Specimen class
+    Generates population
+    :param template: [(real, (low, high)),...]
+    :param n: size of population
+    :return: new population list
+    """
+    population = [None] * n
+    for i in range(n):
+        population[i] = Specimen(generate_specimen(template))
+        if(cost_function != None):
+            population[i].updateFitness(cost_function)
+    return population
+
+
+def generate_specimen(template):
     """ Specimen generator
     Generates specimen according to given template
 
-    :param specimen_template - [(real, (low, high)),...]
+    :param template: [(real, (low, high)),...]
     """
-
     specimen = []
-    for att in specimen_template:
+    for att in template:
         att_type = att[0]
         low = att[1][0]
         high = att[1][1]
@@ -37,7 +54,7 @@ def generate_specimen(specimen_template):
     return specimen
 
 
-def validate_constrains(specimen, specimen_template):
+def validate_constrains(specimen, template):
     """ Constrains validator
     Validates if any attribute of specimen violate given constrains
     if yes then generate new value for it
@@ -46,12 +63,12 @@ def validate_constrains(specimen, specimen_template):
     :param specimen - specimen to validate
     :param specimen_template - template with constrains
     """
-    for att_index in range(len(specimen_template)):
-        low_const = specimen_template[att_index][1][0]
-        high_const = specimen_template[att_index][1][1]
+    for att_index in range(len(template)):
+        low_const = template[att_index][1][0]
+        high_const = template[att_index][1][1]
         # If attribute cross constrains then generate new value for it
         if specimen[att_index] > high_const or specimen[att_index] < low_const:
-            att_type = specimen_template[att_index][0]
+            att_type = template[att_index][0]
             # Generate new value for attribute
             if att_type == 'real':
                 specimen[att_index] = rand.random() * (high_const - low_const) + low_const

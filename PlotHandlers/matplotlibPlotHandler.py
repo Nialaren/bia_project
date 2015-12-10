@@ -1,4 +1,3 @@
-from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D
@@ -33,7 +32,7 @@ class PlotHandler(object):
 
     def updatePopulation(self, population):
         self.activePopulation = population
-        x, y, z = self.prepare_population_data(population)
+        x, y, z = self.preparePopulationData(population)
 
         if self.scatter is not None:
             self.scatter.remove()
@@ -44,11 +43,14 @@ class PlotHandler(object):
         self.scatter.set_alpha(1.0)
         self.canvas.draw()
 
-    def prepare_population_data(self, population):
+    def preparePopulationData(self, population):
         x = []
         y = []
         z = []
         for p in population:
+            # x.append(p.parameters[0])
+            # y.append(p.parameters[1])
+            # z.append(p.fitness)
             x.append(p[0])
             y.append(p[1])
             z.append(p[2])

@@ -8,7 +8,7 @@ from PlotHandlers.matplotlibPlotHandler import PlotHandler
 # from PlotHandlers.visvisPlotHandler import PlotHandler
 # from PlotHandlers.pyqtgraphPlotHandler import PlotHandler
 import testFunction as TF
-import specimenPopulation
+import PopulationUtils
 
 
 class Window(QMainWindow, Ui_MainWindow):
@@ -68,25 +68,24 @@ class Window(QMainWindow, Ui_MainWindow):
     @QtCore.pyqtSlot()
     def generate_population(self):
         n = self.numOfSpecimenSpinBox.value()
-        min_const = self.mindoubleSpinBox.value()
-        max_const = self.maxdoubleSpinBox.value()
-        only_integer = self.intCheckBox.isChecked()
-        data_type = 'real'
-        if only_integer:
-            data_type = 'integer'
-
-        specimen_template = [(data_type, (min_const, max_const))] * 2
-        new_population = specimenPopulation.generate_population(specimen_template, n)
-        self.actualPopulation = self.calculateFitness(new_population)
+        self.actualPopulation = PopulationUtils.generate_population(self.getSpecimenTemplate(), n, self.activeCostFunction)
         # Show population
         self.plotHandler.updatePopulation(self.actualPopulation)
 
-    def calculateFitness(self, population):
-        for specimen in population:
-            fitness = self.activeCostFunction(specimen)
-            specimen.append(fitness)
-        return population
+    def getSpecimenTemplate(self):
+        min_const = self.mindoubleSpinBox.value()
+        max_const = self.maxdoubleSpinBox.value()
+        only_integer = self.intCheckBox.isChecked()
 
+        data_type = 'real'
+        if only_integer:
+            data_type = 'integer'
+        return [(data_type, (min_const, max_const))] * 2
+
+    def updateCallback(self, actualPopulation, bestPopulation):
+        self.actualPopulation = actualPopulation
+        # TODO: Save best population to log Widget
+        self.plotHandler.updatePopulation(self.actualPopulation)
 
 
 if __name__ == '__main__':
