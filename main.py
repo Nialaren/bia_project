@@ -35,7 +35,6 @@ class Window(QMainWindow, Ui_MainWindow):
         # Plot initialization
         self.initialize_plot()
 
-
     """
     Initialization of default plot
     - adds some data to plot.
@@ -68,7 +67,10 @@ class Window(QMainWindow, Ui_MainWindow):
     @QtCore.pyqtSlot()
     def generate_population(self):
         n = self.numOfSpecimenSpinBox.value()
-        self.actualPopulation = PopulationUtils.generate_population(self.getSpecimenTemplate(), n, self.activeCostFunction)
+        self.actualPopulation = PopulationUtils.generate_population(
+                self.getSpecimenTemplate(),
+                n,
+                self.activeCostFunction)
         # Show population
         self.plotHandler.updatePopulation(self.actualPopulation)
 

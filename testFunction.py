@@ -2,11 +2,13 @@ from PyQt4 import QtCore, QtGui
 import numpy as np
 import math
 
+
 def firstDeJong(basicPlane):
     result = 0
     for dim in basicPlane:
         result += dim**2
     return result
+
 
 def rosenbrocksSaddle(data):
     result = None
@@ -17,6 +19,7 @@ def rosenbrocksSaddle(data):
             result += ((100 * (data[i]**2 - data[i+1])**2) + (1 - data[i])**2)
     return result
 
+
 def thirdDeJong(data):
     result = None
     for dim in data:
@@ -26,6 +29,7 @@ def thirdDeJong(data):
             result += abs(dim)
     return result
 
+
 def forthDeJong(data):
     result = None
     for i in range(len(data)):
@@ -34,6 +38,7 @@ def forthDeJong(data):
         else:
             result += (i+1) * data[i]**4
     return result
+
 
 def rastrigin(data):
     result = None
@@ -45,6 +50,7 @@ def rastrigin(data):
             result += x**2 - (10 * np.cos((2*np.pi*x)))
     return 2*count_dim*result
 
+
 def schewefel(data):
     result = None
     for x in data:
@@ -53,6 +59,7 @@ def schewefel(data):
         else:
             result += (-x) * np.sin(np.sqrt(abs(x)))
     return result
+
 
 def griewangkova(data):
     result_sum = None
@@ -66,6 +73,7 @@ def griewangkova(data):
             result_mult *= np.cos(data[i]/np.sqrt((i+1)))
     return 1 + result_sum - result_mult
 
+
 def sineEnvelope(data):
     result_sum = None
     for i in range(len(data)-1):
@@ -76,6 +84,7 @@ def sineEnvelope(data):
         else:
             result_sum += (0.5 + (  (np.sin(x1 + x2 - 0.5)**2)  /  (1+0.001*(x1 + x2))**2 ))
     return -1 *result_sum
+
 
 def sineWave(data):
     result = None
@@ -88,6 +97,7 @@ def sineWave(data):
             result += ((np.sqrt(np.sqrt(x1 + x2))) * np.sin((50 * (x1 + x2)**0.1))**2 + 1)
 
     return result
+
 
 class MultiPurposeFnc(object):
     NAME = 'multi_purpose_function'
