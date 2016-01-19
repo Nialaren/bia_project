@@ -23,19 +23,28 @@ class Window(QWidget):
         self.plotHandler = PlotHandler(self)
         layout.addWidget(self.plotHandler.get_widget())
 
-        # create start Button
-        self.startButton = QPushButton(self)
-        self.startButton.setText('Step')
-        layout.addWidget(self.startButton)
+        # create step Button
+        self.stepButton = QPushButton(self)
+        self.stepButton.setText('Step')
 
-        self.startButton.clicked.connect(self.step)
+        layout.addWidget(self.stepButton)
+
+        self.stepButton.clicked.connect(self.step)
+
+        self.runButton = QPushButton(self)
+        self.runButton.setText('Run')
+
+        layout.addWidget(self.runButton)
+        self.runButton.clicked.connect(self.run)
 
         # Evolution algorithm important properties
         self.algorithm = None
+        self.specimenTemplate = None
         self.testFunctions = None
         self.fitnessFunction = None
         self.actualPopulation = None
         self.bestPopulation = None
+        self.iteration = 0
         # Plot initialization
         self.initialize_plot()
 
@@ -45,6 +54,7 @@ class Window(QWidget):
             self.algorithm = EA.SimulatedAnnealingAlgorithm(
                 self.actualPopulation,
                 self.fitnessFunction,
+                self.specimenTemplate,
                 self.updateCallback)  # Not needed here
         # Its interesting that self.actualPopulation is given to algorithm via reference
         # So all changes inside algorithm are also shown here
@@ -52,6 +62,16 @@ class Window(QWidget):
         self.algorithm.step()
         # self.algorithm.t +=1
         print 'Actual temperature {0}'.format(self.algorithm.t)
+
+    @QtCore.pyqtSlot()
+    def run(self):
+        if self.algorithm is None:
+            self.algorithm = EA.SimulatedAnnealingAlgorithm(
+                self.actualPopulation,
+                self.fitnessFunction,
+                self.specimenTemplate,
+                self.updateCallback)
+        self.algorithm.run()
 
     def initialize_plot(self):
         """
@@ -75,8 +95,9 @@ class Window(QWidget):
         :param n:
         :return:
         """
+        self.specimenTemplate = self.getSpecimenTemplate(-3, 3)
         self.actualPopulation = PopulationUtils.generate_population(
-                self.getSpecimenTemplate(-3, 3),
+                self.specimenTemplate,
                 n,
                 self.fitnessFunction)
         # Show population
@@ -105,9 +126,12 @@ class Window(QWidget):
         # print 'NEW'
         # print actual_population
         self.bestPopulation = best_population
-        self.actualPopulation = actual_population
+        # self.actualPopulation = actual_population
         self.plotHandler.updatePopulation(self.actualPopulation)
-        self.algorithm.shouldStop = True
+        print 'Iteration {0}'.format(self.iteration)
+        self.iteration += 1
+        # time.sleep(2)
+        # self.algorithm.shouldStop = True
 
 
 if __name__ == '__main__':

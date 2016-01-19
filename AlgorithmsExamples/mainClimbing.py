@@ -32,6 +32,7 @@ class Window(QWidget):
 
         # Evolution algorithm important properties
         self.algorithm = None
+        self.specimenTemplate = None
         self.testFunctions = None
         self.fitnessFunction = None
         self.actualPopulation = None
@@ -45,6 +46,7 @@ class Window(QWidget):
             self.algorithm = EA.ClimbingHillAlgorithm(
                 self.actualPopulation,
                 self.fitnessFunction,
+                self.specimenTemplate,
                 self.updateCallback)  # Not needed here
         # Its interesting that self.actualPopulation is given to algorithm via reference
         # So all changes inside algorithm are also shown here
@@ -72,8 +74,9 @@ class Window(QWidget):
         :param n:
         :return:
         """
+        self.specimenTemplate = self.getSpecimenTemplate(-3, 3)
         self.actualPopulation = PopulationUtils.generate_population(
-                self.getSpecimenTemplate(-3, 3),
+                self.specimenTemplate,
                 n,
                 self.fitnessFunction)
         # Show population
