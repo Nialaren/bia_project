@@ -230,3 +230,71 @@ class DifferentialEvolution(AbstractAlgorithm):
 
     def run(self):
         pass
+
+
+class SOMA(AbstractAlgorithm):
+    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
+        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback)
+
+        self.pathLength = 2  # (1, 5]
+        self.stepParam = 1.2  # (0.11, PathLength]
+        self.PRT = 0.1  # [0,1]
+        self.migration_num = 0
+        self.migrations = 10  # [10, user] - same as iterations
+        # [+- anything, user ] - optimal around 0.001 if range is 100 - 100.1
+        self.minDiv = -1  # minus means, that algorithm terminates after all rounds (migrations)
+
+    def get_widget(self):
+        pass
+
+    def generate_perturbation_vector(self, dim):
+        perturbation_vector = []
+        for i in range(dim):
+            if rand.random() < self.PRT:
+                perturbation_vector.append(1)
+            else:
+                perturbation_vector.append(0)
+        return perturbation_vector
+
+
+    def step(self):
+        # find leader
+        popSize = len(self.population)
+        leader_index = 0
+        for i in range(popSize):
+            if self.population[leader_index][2] > self.population[i][2]:
+                leader_index = i
+        leader = self.population[leader_index]
+
+        new_population = []
+        # Lets migration starts!
+        for specimen in self.population:
+            if specimen == leader:
+                new_population.append(specimen)
+                continue
+
+            best_on_path = specimen
+            actual_position = specimen
+            t = self.stepParam
+            # Migration(mutation) of each element
+            while t < self.pathLength:
+                new_position = []
+                dimension = len(specimen[:2])
+                pert_vector = self.generate_perturbation_vector(dimension)
+                for att_index in range(dimension):
+                    if pert_vector[att_index] == 0:
+                        new_position.append(actual_position[att_index])
+                    else:
+                        tmp = actual_position[att_index] + t * (leader[att_index] - actual_position[att_index])
+                        new_position.append(tmp)
+                # calculate fitness
+                new_position.append(self.fitnessFunction(new_position))
+                # check if new position is better
+                if new_position[2] < best_on_path[2]:
+                    best_on_path = new_position
+                # increase step
+                t += self.stepParam
+            new_population.append(best_on_path)
+        self.population = new_population
+        self.migration_num += 1
+
