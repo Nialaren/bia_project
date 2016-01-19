@@ -167,3 +167,66 @@ class SimulatedAnnealingAlgorithm(AbstractAlgorithm):
             if self.shouldStop is True:
                 self.shouldStop = False
                 break
+
+
+class DifferentialEvolution(AbstractAlgorithm):
+    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
+        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback)
+
+        self.F = 0.9
+        self.CR = 0.8
+        self.generation = 0
+
+    def get_widget(self):
+        pass
+
+    def step(self):
+        new_population = []
+        pop_size = len(self.population)
+        for i in range(pop_size):
+            actual_specimen = self.population[i]
+            # choose 3 random specimen from population
+            random_specimens = []
+            for j in range(3):
+                next_spec_index = rand.randint(0, pop_size-1)
+                next_spec = self.population[next_spec_index]
+                # if we pick already used, we just increase index until we find unused
+                while next_spec in random_specimens:
+                    next_spec_index += 1
+                    if next_spec_index == pop_size:
+                        next_spec_index = 0
+                    next_spec = self.population[next_spec_index]
+
+                # now we have unused - use numpy arrays for easy manipulation
+                random_specimens.append(np.array(next_spec[:2]))
+
+            # create Differential vector
+            differential_vector = np.array(random_specimens[0] - random_specimens[1])
+            weighted_differential_vector = self.F * differential_vector
+            noise_vector = random_specimens[2] + weighted_differential_vector
+
+            # trial vector - MUTATION part
+            trial_vector = []
+            for att_index in range(len(noise_vector)):
+                probability = rand.random()
+                if probability < self.CR:
+                    trial_vector.append(noise_vector[att_index])
+                else:
+                    trial_vector.append(actual_specimen[att_index])
+
+            # constrains
+            PopulationUtils.validate_constrains(trial_vector, self.specimenTemplate)
+            # count fitness of trial vector
+            trial_vector.append(self.fitnessFunction(trial_vector))
+            # add to new population one with better fitness
+            if trial_vector[2] < actual_specimen[2]:
+                new_population.append(trial_vector)
+            else:
+                new_population.append(actual_specimen)
+
+        # discard old population in favour of new one
+        self.population = new_population
+        self.generation += 1
+
+    def run(self):
+        pass
