@@ -374,6 +374,46 @@ class ParticleSwarm(AbstractAlgorithm):
         self.iteration += 1
 
 
+class EvolutionStrategy(AbstractAlgorithm):
+    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
+        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback)
+
+        self.d = len(specimenTemplate)
+        self.types = [(str(n), '<f8') for n in range(self.d)]
+
+        self.sigmas = []
+        self.count_variances()
+
+    def count_variances(self):
+        n = len(self.population)
+        for att in self.specimenTemplate:
+            b = att[1][1] - (att[1][0])
+            self.sigmas.append(math.sqrt((math.pi*b)/(2*n)))
+
+    def get_widget(self):
+        pass
+
+    def step(self):
+        pop_size = len(self.population)
+        children = []
+        for i in range(pop_size):
+            new_child = []
+            for att_i in range(self.d):
+                new_child.append(self.population[i][att_i] + rand.gauss(0, self.sigmas[att_i]))
+            # count fitness
+            new_child.append(self.fitnessFunction(new_child))
+            # add it to children
+            children.append(new_child)
+
+        # order them and choose new population
+        all_values = np.concatenate([self.population, children])
+        sorted_indexes = np.argsort([x[self.d] for x in all_values])
+        new_population = []
+        for i in range(pop_size):
+            new_population.append(all_values[sorted_indexes[i]])
+        self.population = new_population
+        self.iteration += 1
+
 
 
 

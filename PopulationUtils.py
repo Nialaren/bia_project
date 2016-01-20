@@ -1,4 +1,5 @@
 import random as rand
+import math
 from Specimen import Specimen
 
 
@@ -61,7 +62,7 @@ def validate_constrains(specimen, template):
     Note! - indexes of attributes of specimen and template must be same
 
     :param specimen - specimen to validate
-    :param specimen_template - template with constrains
+    :param template - template with constrains
     """
     for att_index in range(len(template)):
         low_const = template[att_index][1][0]
