@@ -298,3 +298,83 @@ class SOMA(AbstractAlgorithm):
         self.population = new_population
         self.migration_num += 1
 
+
+class ParticleSwarm(AbstractAlgorithm):
+    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
+        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback)
+
+        self.d = len(specimenTemplate) # dimension
+        # count v_max - 1/20 of space range
+        self.v_max = []
+        for att in specimenTemplate:
+            d = att[1][1] - (att[1][0])
+            self.v_max.append(d/20.0)
+
+        # learning factors [0, 4]
+        self.c1 = 1
+        self.c2 = 1
+        # setrvacnsot - 1 means, its not important argument
+        self.w = 1
+        self.bestPositions = np.array(initialPopulation).copy()
+        # find initial global best position
+        self.gBest = self.bestPositions[0]
+        for pos in self.bestPositions:
+            if self.gBest[self.d] > pos[self.d]:
+                self.gBest = pos
+        # initialize speed
+        self.actualSpeed = [[0]*len(specimenTemplate)] * len(initialPopulation)
+
+    def get_widget(self):
+        pass
+
+    def validate_speed_vector(self, to_validate):
+        is_correction = False
+        for att_i in range(self.d):
+            is_negative = to_validate[att_i] < 0
+            if abs(to_validate[att_i]) > self.v_max[att_i]:
+                is_correction = True
+                new_val = rand.random() * self.v_max[att_i]
+                if is_negative:
+                    new_val = (-new_val)
+                to_validate[att_i] = new_val
+        # print "Was correction: {0}".format(is_correction)
+
+    def step(self):
+        pop_size = len(self.population)
+        for i in range(pop_size):
+            specimen_pos = self.population[i]
+            specimen_best_pos = self.bestPositions[i]
+            new_speed = []
+            for att_i in range(self.d):
+                local_best_tend = self.c1 * rand.random() * (specimen_best_pos[att_i] - (specimen_pos[att_i]))
+                global_best_tend = self.c2 * rand.random() * (self.gBest[att_i] - (specimen_pos[att_i]))
+                new_speed.append(self.w * self.actualSpeed[i][att_i] + local_best_tend + global_best_tend)
+
+            # speed validation and correction
+            self.validate_speed_vector(new_speed)
+            self.actualSpeed[i] = new_speed
+
+            # new position update
+            new_position = []
+            for att_i in range(self.d):
+                new_position.append(specimen_pos[att_i] + new_speed[att_i])
+
+            # position validation
+            PopulationUtils.validate_constrains(new_position, self.specimenTemplate)
+
+            # count fitness and update new position
+            new_position.append(self.fitnessFunction(new_position))
+            self.population[i] = new_position
+
+            # control with best local and global
+            if self.gBest[self.d] > new_position[self.d]:
+                self.gBest = new_position
+            if self.bestPositions[i][self.d] > new_position[self.d]:
+                self.bestPositions[i] = new_position
+        self.iteration += 1
+
+
+
+
+
+
