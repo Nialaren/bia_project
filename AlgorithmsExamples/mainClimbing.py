@@ -28,7 +28,12 @@ class Window(QWidget):
         self.startButton.setText('Step')
         layout.addWidget(self.startButton)
 
+        self.runButton = QPushButton(self)
+        self.runButton.setText('Run')
+        layout.addWidget(self.runButton)
+
         self.startButton.clicked.connect(self.step)
+        self.runButton.clicked.connect(self.run)
 
         # Evolution algorithm important properties
         self.algorithm = None
@@ -52,6 +57,20 @@ class Window(QWidget):
         # So all changes inside algorithm are also shown here
         self.algorithm.step()
         self.plotHandler.updatePopulation(self.actualPopulation)
+
+    @QtCore.pyqtSlot()
+    def run(self):
+        if self.algorithm is None:
+            self.algorithm = EA.ClimbingHillAlgorithm(
+                self.actualPopulation,
+                self.fitnessFunction,
+                self.specimenTemplate,
+                self.updateCallback)
+        if self.algorithm.is_running:
+            self.algorithm.shouldStop = True
+        else:
+            self.algorithm.run()
+            self.plotHandler.updatePopulation(self.bestPopulation)
 
     """
     Initialization of default plot
@@ -106,8 +125,9 @@ class Window(QWidget):
         # print actual_population
         self.bestPopulation = best_population
         self.actualPopulation = actual_population
+        print 'next'
         self.plotHandler.updatePopulation(self.actualPopulation)
-        self.algorithm.shouldStop = True
+        # time.sleep(1)
 
 
 if __name__ == '__main__':

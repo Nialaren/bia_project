@@ -16,6 +16,7 @@ class AbstractAlgorithm(object):
         self.fitnessFunction = fitnessFunction
         self.iteration = 0
         self.shouldStop = False
+        self.is_running = False
 
         # Algorithm related variables
         self.bestPopulation = np.array(self.population).copy()
@@ -73,6 +74,7 @@ class ClimbingHillAlgorithm(AbstractAlgorithm):
         self.iteration += 1
 
     def run(self, iterations=10):
+        self.is_running = True
         # TODO: get iterations from widget
         # iterations = widget.get()
         while self.iteration < iterations:
@@ -81,9 +83,10 @@ class ClimbingHillAlgorithm(AbstractAlgorithm):
             # Timeout
             # if stop button hit
             if self.shouldStop is True:
+                self.is_running = False
                 self.shouldStop = False
                 break
-            self.iteration +=1
+            # self.iteration += 1
 
 
 def neighborhood(x, d, fitness_fn=None, n=10, specimen_template=None):
