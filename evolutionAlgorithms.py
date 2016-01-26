@@ -10,8 +10,7 @@ class AbstractAlgorithm(object):
     """
     Defines abstract algorithm structure
     """
-    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
-        self.population = initialPopulation
+    def __init__(self, initial_population, fitnessFunction, specimenTemplate, updateCallback):
         self.updateCallback = updateCallback
         self.specimenTemplate = specimenTemplate
         self.fitnessFunction = fitnessFunction
@@ -19,8 +18,10 @@ class AbstractAlgorithm(object):
         self.shouldStop = False
         self.is_running = False
 
-        # Algorithm related variables
-        self.bestPopulation = np.array(self.population).copy()
+        # set population
+        self.population = None
+        self.bestPopulation = None
+        self.set_population(initial_population)
 
     def reset(self):
         self.iteration = 0
@@ -31,9 +32,15 @@ class AbstractAlgorithm(object):
     def setSpecimenTemplate(self, template):
         self.specimenTemplate = template
 
-    def setPopulation(self, pop):
+    def set_population(self, pop):
+        """
+        Set new population and reset iteration counter
+        :param pop: New population
+        :return:
+        """
         self.reset()
         self.population = pop
+        self.bestPopulation = np.array(self.population).copy()
 
     def setFitnessFunction(self, fn):
         self.reset()
@@ -44,8 +51,6 @@ class AbstractAlgorithm(object):
 
     def step(self):
         pass
-
-
 
 
 class ClimbingHillAlgorithm(AbstractAlgorithm):

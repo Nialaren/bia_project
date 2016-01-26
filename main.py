@@ -9,7 +9,10 @@ from PlotHandlers.matplotlibPlotHandler import PlotHandler
 # from PlotHandlers.pyqtgraphPlotHandler import PlotHandler
 import testFunction as TF
 import PopulationUtils
+import evolutionAlgorithms as ea
 
+# algorithms - used for switch-like selection
+INDEX_ALGORITHM = [None, ea.ClimbingHillAlgorithm, ea.SimulatedAnnealingAlgorithm]
 
 class Window(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -28,27 +31,42 @@ class Window(QMainWindow, Ui_MainWindow):
         self.changeButton.clicked.connect(self.update_plot)
         self.generateButton.clicked.connect(self.generate_population)
 
+        # ToolBox with algorithms
+        QtCore.QObject.connect(self.chooseSearchToolBox,
+                               QtCore.SIGNAL('currentChanged(int)'),
+                               self,
+                               QtCore.SLOT('algorithm_change_callback(int)')
+                               )
+
+        # Run button
+        self.ButtonRun.clicked.connect(self.run_button_callback)
+        # Step Button
+        self.ButtonStep.clicked.connect(self.step_button_callback)
+
         # Evolution algorithm important properties
+        self.algorithm = None
+        self.specimenTemplate = None
         self.testFunctions = None
-        self.activeCostFunction = None
+        self.fitness_function = None
         self.actualPopulation = None
         # Plot initialization
         self.initialize_plot()
 
-    """
-    Initialization of default plot
-    - adds some data to plot.
-    """
     def initialize_plot(self):
+        """
+        Initialize plot
+        :return:
+        """
         self.testFunctions = [TF.firstDeJong, TF.rosenbrocksSaddle, TF.thirdDeJong, TF.forthDeJong,
                      TF.rastrigin, TF.schewefel, TF.griewangkova, TF.sineEnvelope,
                      TF.sineWave, TF.MultiPurposeFnc]
-        self.activeCostFunction = TF.firstDeJong
+        self.fitness_function = TF.firstDeJong
+
         # raw data
         x = np.arange(-3, 3, 0.2)
 
         y = x
-        z = self.activeCostFunction(np.meshgrid(x, x))
+        z = self.fitness_function(np.meshgrid(x, x))
         self.plotHandler.updatePlot(x, y, z)
 
     @QtCore.pyqtSlot()
@@ -56,12 +74,12 @@ class Window(QMainWindow, Ui_MainWindow):
         x1 = self.mindoubleSpinBox.value()
         x2 = self.maxdoubleSpinBox.value()
         x3 = self.pointsdoubleSpinBox.value()
-        self.activeCostFunction = self.testFunctions[self.chooseFunctionComboBox.currentIndex()]
+        self.fitness_function = self.testFunctions[self.chooseFunctionComboBox.currentIndex()]
         # raw data
         x = np.arange(x1, x2, x3)
 
         y = x
-        z = self.activeCostFunction(np.meshgrid(x, x))
+        z = self.fitness_function(np.meshgrid(x, x))
         self.plotHandler.updatePlot(x, y, z)
 
     @QtCore.pyqtSlot()
@@ -70,7 +88,10 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actualPopulation = PopulationUtils.generate_population(
                 self.getSpecimenTemplate(),
                 n,
-                self.activeCostFunction)
+                self.fitness_function)
+        # Add reference to algorithm
+        if self.algorithm is not None:
+            self.algorithm.set_population(self.actualPopulation)
         # Show population
         self.plotHandler.updatePopulation(self.actualPopulation)
 
@@ -88,6 +109,48 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actualPopulation = actualPopulation
         # TODO: Save best population to log Widget
         self.plotHandler.updatePopulation(self.actualPopulation)
+
+    @QtCore.pyqtSlot()
+    def run_button_callback(self):
+        if self.algorithm is not None:
+            self.algorithm.run()
+
+
+    @QtCore.pyqtSlot()
+    def step_button_callback(self):
+        """
+        Triggers when step button is clicked
+        :return:
+        """
+        if self.algorithm is not None:
+            self.algorithm.step()
+            self.plotHandler.updatePopulation(self.algorithm.population)
+
+    @QtCore.pyqtSlot(int)
+    def algorithm_change_callback(self, index):
+        """
+        Triggers when algorithm is changed from toolbox
+        :param index:
+        :return:
+        """
+        if index < (len(INDEX_ALGORITHM)-1):
+            if INDEX_ALGORITHM[index] is None:
+                print 'None'
+                return
+
+            self.algorithm = INDEX_ALGORITHM[index](self.actualPopulation, 
+                                                    self.fitness_function, 
+                                                    self.specimenTemplate, 
+                                                    self.updateCallback
+                                                    )
+            print INDEX_ALGORITHM[index].__name__
+        else:
+            return
+        
+        
+
+
+
 
 
 if __name__ == '__main__':

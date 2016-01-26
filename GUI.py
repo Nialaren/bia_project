@@ -434,6 +434,12 @@ class Ui_MainWindow(object):
         self.blindSearch.setGeometry(QtCore.QRect(0, 0, 318, 145))
         self.blindSearch.setObjectName(_fromUtf8("blindSearch"))
         self.chooseSearchToolBox.addItem(self.blindSearch, _fromUtf8(""))
+        # Climbing hill algorithm
+        self.climbingHill = QtGui.QWidget()
+        self.climbingHill.setGeometry(QtCore.QRect(0, 0, 318, 145))
+        self.climbingHill.setObjectName(_fromUtf8("climbingHill"))
+        self.chooseSearchToolBox.addItem(self.climbingHill, _fromUtf8(""))
+        ### END ###
         self.simAnnealing = QtGui.QWidget()
         self.simAnnealing.setGeometry(QtCore.QRect(0, 0, 318, 145))
         self.simAnnealing.setObjectName(_fromUtf8("simAnnealing"))
@@ -797,10 +803,13 @@ class Ui_MainWindow(object):
         self.maxLabel.setText(_translate("MainWindow", "maximum:", None))
         self.pointsLabel.setText(_translate("MainWindow", "hustota bodů:", None))
         self.pointsNumberLabel.setText(_translate("MainWindow", "0,2", None))
+        # Climbing hill text
+        self.chooseSearchToolBox.setItemText(self.chooseSearchToolBox.indexOf(self.climbingHill), _translate("MainWindow", "Horolezecký algoritmus", None))
+        ### END ###
         self.chooseSearchToolBox.setItemText(self.chooseSearchToolBox.indexOf(self.blindSearch), _translate("MainWindow", "Náhodné prohledávání", None))
         self.labelSimAnnealingT.setText(_translate("MainWindow", "t", None))
         self.labelSimAnnealingAlpha.setText(_translate("MainWindow", "alpha", None))
-        self.chooseSearchToolBox.setItemText(self.chooseSearchToolBox.indexOf(self.simAnnealing), _translate("MainWindow", "Simulované říhání", None))
+        self.chooseSearchToolBox.setItemText(self.chooseSearchToolBox.indexOf(self.simAnnealing), _translate("MainWindow", "Simulované žíhání", None))
         self.labelDiffEvFValue.setText(_translate("MainWindow", "F", None))
         self.labelDiffEvCrValue.setText(_translate("MainWindow", "CR", None))
         self.labeDiffEvGeneration.setText(_translate("MainWindow", "generace", None))

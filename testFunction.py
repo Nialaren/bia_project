@@ -122,12 +122,12 @@ class MultiPurposeFnc(object):
         return h
 
     @staticmethod
-    def graph_z(X1, X2, F, z_corector=1):
+    def graph_z(X1, X2, F, z_corrector=1):
         Z = [None] * len(X1)
         for i in range(len(X1)):
             Z[i] = []
             for j in range(len(X2)):
-                Z[i].append(MultiPurposeFnc.function(X1[i], X2[j], F) * z_corector)
+                Z[i].append(MultiPurposeFnc.function(X1[i], X2[j], F) * z_corrector)
         return Z
 
     @staticmethod
