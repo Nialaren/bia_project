@@ -42,6 +42,7 @@ class PlotHandler(object):
         self.scatter.set_zorder(100)
         self.scatter.set_alpha(1.0)
         self.canvas.draw()
+        self.canvas.flush_events()
 
     def preparePopulationData(self, population):
         x = []

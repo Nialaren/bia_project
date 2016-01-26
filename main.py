@@ -12,7 +12,7 @@ import PopulationUtils
 
 
 class Window(QMainWindow, Ui_MainWindow):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         QMainWindow.__init__(self,parent)
         Ui_MainWindow.__init__(self, parent)
         self.setupUi(self)
