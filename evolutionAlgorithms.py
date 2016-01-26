@@ -3,6 +3,7 @@ import random as rand
 import math
 from Specimen import Specimen
 import numpy as np
+import itertools
 
 
 class AbstractAlgorithm(object):
@@ -297,6 +298,26 @@ class SOMA(AbstractAlgorithm):
             new_population.append(best_on_path)
         self.population = new_population
         self.migration_num += 1
+
+class ScatterSearch(AbstractAlgorithm):
+    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
+        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback)
+
+    def getWidget(self):
+        pass
+
+    def step(self):
+        size = len(self.population)
+        leader_index = 0
+        new_population = []
+
+
+
+        if len(new_population) == 0:
+            new_population = np.array(self.bestPopulation).copy()
+
+        for combination in itertools.product(self.population, new_population):
+            print combination[0] + combination[1]
 
 
 class ParticleSwarm(AbstractAlgorithm):

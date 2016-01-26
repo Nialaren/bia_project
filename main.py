@@ -42,7 +42,7 @@ class Window(QMainWindow, Ui_MainWindow):
     def initialize_plot(self):
         self.testFunctions = [TF.firstDeJong, TF.rosenbrocksSaddle, TF.thirdDeJong, TF.forthDeJong,
                      TF.rastrigin, TF.schewefel, TF.griewangkova, TF.sineEnvelope,
-                     TF.sineWave]
+                     TF.sineWave, TF.MultiPurposeFnc]
         self.activeCostFunction = TF.firstDeJong
         # raw data
         x = np.arange(-3, 3, 0.2)
