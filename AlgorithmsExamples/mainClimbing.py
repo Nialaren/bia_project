@@ -67,7 +67,7 @@ class Window(QWidget):
                 self.specimenTemplate,
                 self.updateCallback)
         if self.algorithm.is_running:
-            self.algorithm.shouldStop = True
+            self.algorithm.should_stop = True
         else:
             self.algorithm.run()
             self.plotHandler.updatePopulation(self.bestPopulation)

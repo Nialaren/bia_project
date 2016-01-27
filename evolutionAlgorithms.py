@@ -188,13 +188,13 @@ class SimulatedAnnealingAlgorithm(AbstractAlgorithm):
                 )
 
                 random_neighbour = N[0]
-                delta_f = random_neighbour[2] - x[2]
+                delta_f = random_neighbour[self.d] - x[self.d]
 
                 if delta_f < 0:
                     # Always accept better solution
                     self.population[i] = random_neighbour
                     # check if best solution changed
-                    if self.best_population[i][2] > random_neighbour[2]:
+                    if self.best_population[i][self.d] > random_neighbour[self.d]:
                         self.best_population[i] = random_neighbour
                 else:
                     r = rand.random()
@@ -210,8 +210,12 @@ class SimulatedAnnealingAlgorithm(AbstractAlgorithm):
         # iterations = widget.get()
         while self.t > t_final:
             self.step()
-            self.update_callback(self.population, self.best_population)
-            # Timeout
+            self.iteration += 1
+            self.update_callback(
+                    self.population,
+                    self.best_population,
+                    done=(self.t <= t_final)
+            )
             # if stop button hit
             if self.should_stop is True:
                 self.should_stop = False
