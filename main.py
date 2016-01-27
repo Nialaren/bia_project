@@ -12,7 +12,12 @@ import PopulationUtils
 import evolutionAlgorithms as eA
 
 # algorithms - used for switch-like selection
-INDEX_ALGORITHM = [None, eA.ClimbingHillAlgorithm, eA.SimulatedAnnealingAlgorithm]
+INDEX_ALGORITHM = [
+    None,
+    eA.ClimbingHillAlgorithm,
+    eA.SimulatedAnnealingAlgorithm,
+    eA.DifferentialEvolution
+]
 
 
 class AppWindow(QMainWindow, Ui_MainWindow):
@@ -71,21 +76,38 @@ class AppWindow(QMainWindow, Ui_MainWindow):
     def update_plot(self):
         """
         Updates fitness function surface graph
+        If there is some population - generates new one
         """
         x1 = self.mindoubleSpinBox.value()
         x2 = self.maxdoubleSpinBox.value()
         x3 = self.pointsdoubleSpinBox.value()
         self.fitness_function = self.test_functions[self.chooseFunctionComboBox.currentIndex()]
-        # raw data
+
+        # regenerate population
+        if self.actualPopulation is not None:
+            template = self.get_specimen_template()
+            n = self.numOfSpecimenSpinBox.value()
+            # generate new population
+            self.actualPopulation = PopulationUtils.generate_population(
+                    self.get_specimen_template(),
+                    n,
+                    self.fitness_function
+            )
+
+            # Add reference to algorithm and update
+            if self.algorithm is not None:
+                self.algorithm.set_specimen_template(template)
+                self.algorithm.set_population(self.actualPopulation)
+
+        # surface plot data
         x = np.arange(x1, x2, x3)
 
         y = x
         z = self.fitness_function(np.meshgrid(x, x))
-        self.plotHandler.updatePlot(x, y, z)
+        # Draw all at once
+        self.plotHandler.updatePlot(x, y, z, population=self.actualPopulation)
 
-        # also algorithm should probably be reset
-        if self.algorithm is not None:
-            self.algorithm.set_specimen_template(self.get_specimen_template())
+
 
     @QtCore.pyqtSlot()
     def generate_population(self):
@@ -93,13 +115,15 @@ class AppWindow(QMainWindow, Ui_MainWindow):
         Generate Population and set it
         :return:
         """
+        template = self.get_specimen_template()
         n = self.numOfSpecimenSpinBox.value()
         self.actualPopulation = PopulationUtils.generate_population(
-                self.get_specimen_template(),
+                template,
                 n,
                 self.fitness_function)
         # Add reference to algorithm
         if self.algorithm is not None:
+            self.algorithm.set_specimen_template(template)
             self.algorithm.set_population(self.actualPopulation)
         # Show population
         self.plotHandler.updatePopulation(self.actualPopulation)

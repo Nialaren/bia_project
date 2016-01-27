@@ -1,7 +1,6 @@
 import PopulationUtils
 import random as rand
 import math
-from Specimen import Specimen
 import numpy as np
 import itertools
 
@@ -235,9 +234,10 @@ class DifferentialEvolution(AbstractAlgorithm):
     def __init__(self, initial_population, fitness_function, specimen_template, update_callback):
         AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
 
+        # actual population is always the best one
+        self.best_population = self.population
         self.F = 0.9
         self.CR = 0.8
-        self.generation = 0
 
     def get_widget(self):
         pass
@@ -260,7 +260,7 @@ class DifferentialEvolution(AbstractAlgorithm):
                     next_spec = self.population[next_spec_index]
 
                 # now we have unused - use numpy arrays for easy manipulation
-                random_specimens.append(np.array(next_spec[:2]))
+                random_specimens.append(np.array(next_spec[:self.d]))
 
             # create Differential vector
             differential_vector = np.array(random_specimens[0] - random_specimens[1])
@@ -271,7 +271,7 @@ class DifferentialEvolution(AbstractAlgorithm):
             trial_vector = []
             for att_index in range(len(noise_vector)):
                 probability = rand.random()
-                if probability < self.CR:
+                if probability <= self.CR:
                     trial_vector.append(noise_vector[att_index])
                 else:
                     trial_vector.append(actual_specimen[att_index])
@@ -281,17 +281,31 @@ class DifferentialEvolution(AbstractAlgorithm):
             # count fitness of trial vector
             trial_vector.append(self.fitness_function(trial_vector))
             # add to new population one with better fitness
-            if trial_vector[2] < actual_specimen[2]:
+            if trial_vector[self.d] < actual_specimen[self.d]:
                 new_population.append(trial_vector)
             else:
                 new_population.append(actual_specimen)
 
         # discard old population in favour of new one
         self.population = new_population
-        self.generation += 1
+        # or generation to be correct
+        self.iteration += 1
 
-    def run(self):
-        pass
+    def run(self, max_generations=20):
+        # TODO: get iterations from widget
+        # iterations = widget.get()
+        while self.iteration < max_generations:
+            self.step()
+            self.best_population = self.population
+            self.update_callback(
+                    self.population,
+                    self.best_population,
+                    done=(self.iteration >= max_generations)
+            )
+            # if stop button hit
+            if self.should_stop is True:
+                self.should_stop = False
+                break
 
 
 class SOMA(AbstractAlgorithm):

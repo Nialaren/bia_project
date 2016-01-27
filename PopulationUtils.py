@@ -1,6 +1,4 @@
 import random as rand
-import math
-from Specimen import Specimen
 
 
 def generate_population(specimen_template, n, cost_function=None):
@@ -16,21 +14,6 @@ def generate_population(specimen_template, n, cost_function=None):
         population[i] = generate_specimen(specimen_template)
         if(cost_function != None):
             population[i].append(cost_function(population[i]))
-    return population
-
-
-def generate_specimen_population(template, n, cost_function=None):
-    """ Population generator as Specimen class
-    Generates population
-    :param template: [(real, (low, high)),...]
-    :param n: size of population
-    :return: new population list
-    """
-    population = [None] * n
-    for i in range(n):
-        population[i] = Specimen(generate_specimen(template))
-        if(cost_function != None):
-            population[i].updateFitness(cost_function)
     return population
 
 
