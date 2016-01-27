@@ -166,12 +166,21 @@ class SimulatedAnnealingAlgorithm(AbstractAlgorithm):
         pass
 
     def crystallize(self):
+        """
+        Process crystallization (cooling down temperature)
+        """
         self.t = (self.t * self.alpha)
+
+    def reset(self):
+        """
+        Resets algorithm
+        """
+        self.iteration = 0
+        self.t = 100
 
     def step(self):
         """
         Algorithm itself
-        :return:
         """
         n_t = 10
         # For each specimen in population do one evolution cycle
@@ -201,7 +210,7 @@ class SimulatedAnnealingAlgorithm(AbstractAlgorithm):
                     if r < math.pow(math.e, ((-delta_f)/self.t)):
                         # Accept worse solution
                         self.population[i] = random_neighbour
-        # T make lower
+        # lower temperature
         self.crystallize()
 
     def run(self, t_final=0.1, alpha=0.95):
