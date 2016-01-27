@@ -7,22 +7,26 @@ from GUI import Ui_MainWindow
 from PlotHandlers.matplotlibPlotHandler import PlotHandler
 # from PlotHandlers.visvisPlotHandler import PlotHandler
 # from PlotHandlers.pyqtgraphPlotHandler import PlotHandler
-import testFunction as TF
+import testFunction as tF
 import PopulationUtils
-import evolutionAlgorithms as ea
+import evolutionAlgorithms as eA
 
 # algorithms - used for switch-like selection
-INDEX_ALGORITHM = [None, ea.ClimbingHillAlgorithm, ea.SimulatedAnnealingAlgorithm]
+INDEX_ALGORITHM = [None, eA.ClimbingHillAlgorithm, eA.SimulatedAnnealingAlgorithm]
 
-class Window(QMainWindow, Ui_MainWindow):
+
+class AppWindow(QMainWindow, Ui_MainWindow):
+    """
+    Root application widget
+    """
     def __init__(self, parent=None):
-        QMainWindow.__init__(self,parent)
-        Ui_MainWindow.__init__(self, parent)
+        QMainWindow.__init__(self, parent)
+        Ui_MainWindow.__init__(self)
         self.setupUi(self)
 
-        #canvas with graph
+        # canvas with graph
         layout = QVBoxLayout(self.graphicsView)
-        layout.setContentsMargins(0,0,0,0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.graphicsView.setLayout(layout)
         # create plotHandler
         self.plotHandler = PlotHandler(self)
@@ -46,7 +50,7 @@ class Window(QMainWindow, Ui_MainWindow):
         # Evolution algorithm important properties
         self.algorithm = None
         self.specimenTemplate = None
-        self.testFunctions = None
+        self.test_functions = None
         self.fitness_function = None
         self.actualPopulation = None
         # Plot initialization
@@ -54,27 +58,25 @@ class Window(QMainWindow, Ui_MainWindow):
 
     def initialize_plot(self):
         """
-        Initialize plot
+        Initialize plot and test functions
         :return:
         """
-        self.testFunctions = [TF.firstDeJong, TF.rosenbrocksSaddle, TF.thirdDeJong, TF.forthDeJong,
-                     TF.rastrigin, TF.schewefel, TF.griewangkova, TF.sineEnvelope,
-                     TF.sineWave, TF.MultiPurposeFnc]
-        self.fitness_function = TF.firstDeJong
-
-        # raw data
-        x = np.arange(-3, 3, 0.2)
-
-        y = x
-        z = self.fitness_function(np.meshgrid(x, x))
-        self.plotHandler.updatePlot(x, y, z)
+        self.test_functions = [
+            tF.firstDeJong, tF.rosenbrocksSaddle, tF.thirdDeJong, tF.forthDeJong,
+            tF.rastrigin, tF.schewefel, tF.griewangkova,
+            tF.sineEnvelope, tF.sineWave, tF.MultiPurposeFnc
+        ]
+        self.update_plot()
 
     @QtCore.pyqtSlot()
     def update_plot(self):
+        """
+        Updates fitness function surface graph
+        """
         x1 = self.mindoubleSpinBox.value()
         x2 = self.maxdoubleSpinBox.value()
         x3 = self.pointsdoubleSpinBox.value()
-        self.fitness_function = self.testFunctions[self.chooseFunctionComboBox.currentIndex()]
+        self.fitness_function = self.test_functions[self.chooseFunctionComboBox.currentIndex()]
         # raw data
         x = np.arange(x1, x2, x3)
 
@@ -84,9 +86,13 @@ class Window(QMainWindow, Ui_MainWindow):
 
     @QtCore.pyqtSlot()
     def generate_population(self):
+        """
+        Generate Population and set it
+        :return:
+        """
         n = self.numOfSpecimenSpinBox.value()
         self.actualPopulation = PopulationUtils.generate_population(
-                self.getSpecimenTemplate(),
+                self.get_specimen_template(),
                 n,
                 self.fitness_function)
         # Add reference to algorithm
@@ -95,7 +101,11 @@ class Window(QMainWindow, Ui_MainWindow):
         # Show population
         self.plotHandler.updatePopulation(self.actualPopulation)
 
-    def getSpecimenTemplate(self):
+    def get_specimen_template(self):
+        """
+        Generates specimen template according to given constraints
+        :return:
+        """
         min_const = self.mindoubleSpinBox.value()
         max_const = self.maxdoubleSpinBox.value()
         only_integer = self.intCheckBox.isChecked()
@@ -105,16 +115,25 @@ class Window(QMainWindow, Ui_MainWindow):
             data_type = 'integer'
         return [(data_type, (min_const, max_const))] * 2
 
-    def updateCallback(self, actualPopulation, bestPopulation):
-        self.actualPopulation = actualPopulation
+    def update_callback(self, actual_population, best_population):
+        """
+        Callback for algorithms to trigger after each iteration
+        :param actual_population:
+        :param best_population:
+        :return:
+        """
+        self.actualPopulation = actual_population
         # TODO: Save best population to log Widget
         self.plotHandler.updatePopulation(self.actualPopulation)
 
     @QtCore.pyqtSlot()
     def run_button_callback(self):
+        """
+        Execute algorithm
+        :return:
+        """
         if self.algorithm is not None:
             self.algorithm.run()
-
 
     @QtCore.pyqtSlot()
     def step_button_callback(self):
@@ -141,21 +160,16 @@ class Window(QMainWindow, Ui_MainWindow):
             self.algorithm = INDEX_ALGORITHM[index](self.actualPopulation, 
                                                     self.fitness_function, 
                                                     self.specimenTemplate, 
-                                                    self.updateCallback
+                                                    self.update_callback
                                                     )
             print INDEX_ALGORITHM[index].__name__
         else:
             return
-        
-        
-
-
-
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ui = Window()
+    ui = AppWindow()
 
     ui.show()
     sys.exit(app.exec_())

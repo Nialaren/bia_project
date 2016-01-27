@@ -6,95 +6,6 @@ import numpy as np
 import itertools
 
 
-class AbstractAlgorithm(object):
-    """
-    Defines abstract algorithm structure
-    """
-    def __init__(self, initial_population, fitnessFunction, specimenTemplate, updateCallback):
-        self.updateCallback = updateCallback
-        self.specimenTemplate = specimenTemplate
-        self.fitnessFunction = fitnessFunction
-        self.iteration = 0
-        self.shouldStop = False
-        self.is_running = False
-
-        # set population
-        self.population = None
-        self.bestPopulation = None
-        self.set_population(initial_population)
-
-    def reset(self):
-        self.iteration = 0
-
-    def setUpdateCallback(self, fn):
-        self.updateCallback = fn
-
-    def setSpecimenTemplate(self, template):
-        self.specimenTemplate = template
-
-    def set_population(self, pop):
-        """
-        Set new population and reset iteration counter
-        :param pop: New population
-        :return:
-        """
-        self.reset()
-        self.population = pop
-        self.bestPopulation = np.array(self.population).copy()
-
-    def setFitnessFunction(self, fn):
-        self.reset()
-        self.fitnessFunction = fn
-
-    def getWidget(self):
-        pass
-
-    def step(self):
-        pass
-
-
-class ClimbingHillAlgorithm(AbstractAlgorithm):
-    """
-    Climbing Hill Algorithm class
-    """
-    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
-        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback)
-
-    def get_widget(self):
-        pass
-
-    def step(self):
-        # For each specimen in population do one evolution cycle
-        for i in range(len(self.population)):
-            x = self.population[i]
-            # we assume that last parameter is fitness
-            N = neighborhood(x[:2], 1, fitness_fn=self.fitnessFunction, specimen_template=self.specimenTemplate)  # or x[:(len(x)-1)]
-            best = N[0]
-            # Find best specimen in neighbourhood
-            for nb in N:
-                if nb[2] < best[2]:
-                    best = nb
-            if best[2] < self.bestPopulation[i][2]:
-                self.bestPopulation[i] = best
-            self.population[i] = best
-        self.iteration += 1
-
-    def run(self, iterations=10):
-        self.is_running = True
-        # TODO: get iterations from widget
-        # iterations = widget.get()
-        while self.iteration < iterations:
-            self.step()
-            self.updateCallback(self.population, self.bestPopulation)
-            # Timeout
-            # if stop button hit
-            if self.shouldStop is True:
-                self.is_running = False
-                self.shouldStop = False
-                break
-            # self.iteration += 1
-
-
 def neighborhood(x, d, fitness_fn=None, n=10, specimen_template=None):
     """
     Generates randomly neighbourhood of specimen "x" in given diameter "d"
@@ -119,12 +30,125 @@ def neighborhood(x, d, fitness_fn=None, n=10, specimen_template=None):
     return neighbours
 
 
+class AbstractAlgorithm(object):
+    """
+    Defines abstract algorithm structure
+    """
+    def __init__(self, initial_population, fitness_function, specimen_template, update_callback):
+        # callback to call after each iteration in run function
+        self.update_callback = update_callback
+        # specimen template with constraints
+        self.specimen_template = specimen_template
+        # actual fitness function to be used
+        self.fitness_function = fitness_function
+
+        # gives information about Algorithm state
+        self.should_stop = False
+        self.is_running = False
+
+        self.iteration = 0
+
+        # set population
+        self.population = None
+        self.bestPopulation = None
+        self.set_population(initial_population)
+
+    def reset(self):
+        """
+        Reset iteration cycle
+        """
+        self.iteration = 0
+
+    def set_update_callback(self, fn):
+        """
+        Set update callback for run function
+        :param fn:
+        """
+        self.update_callback = fn
+
+    def set_specimen_template(self, template):
+        """
+        Set specimen template
+        :param template:
+        """
+        self.specimen_template = template
+
+    def set_population(self, pop):
+        """
+        Set new population and reset iteration counter
+        :param pop: New population
+        """
+        self.reset()
+        self.population = pop
+        self.bestPopulation = np.array(self.population).copy()
+
+    def set_fitness_function(self, fn):
+        """
+        Overrides fitness function and resets algorithm
+        :param fn:
+        """
+        self.reset()
+        self.fitness_function = fn
+
+    def get_widget(self):
+        print 'Method not implemented'
+        return None
+
+    def step(self):
+        print 'Method not implemented'
+
+    def run(self):
+        print 'Method not implemented'
+
+
+class ClimbingHillAlgorithm(AbstractAlgorithm):
+    """
+    Climbing Hill Algorithm class
+    """
+    def __init__(self, initial_population, fitness_function, specimen_template, update_callback):
+        AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
+
+    def get_widget(self):
+        pass
+
+    def step(self):
+        # For each specimen in population do one evolution cycle
+        for i in range(len(self.population)):
+            x = self.population[i]
+            # we assume that last parameter is fitness
+            N = neighborhood(x[:2], 1, fitness_fn=self.fitness_function, specimen_template=self.specimen_template)  # or x[:(len(x)-1)]
+            best = N[0]
+            # Find best specimen in neighbourhood
+            for nb in N:
+                if nb[2] < best[2]:
+                    best = nb
+            if best[2] < self.bestPopulation[i][2]:
+                self.bestPopulation[i] = best
+            self.population[i] = best
+        self.iteration += 1
+
+    def run(self, iterations=10):
+        self.is_running = True
+        # TODO: get iterations from widget
+        # iterations = widget.get()
+        while self.iteration < iterations:
+            self.step()
+            self.update_callback(self.population, self.bestPopulation)
+            # Timeout
+            # if stop button hit
+            if self.should_stop is True:
+                self.is_running = False
+                self.should_stop = False
+                break
+            # self.iteration += 1
+
+
 class SimulatedAnnealingAlgorithm(AbstractAlgorithm):
     """
     Simulated Annealing Algorithm class
     """
-    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
-        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback)
+    def __init__(self, initial_population, fitness_function, specimen_template, update_callback):
+        AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
         self.t = 100
         self.alpha = 0.95
 
@@ -145,7 +169,7 @@ class SimulatedAnnealingAlgorithm(AbstractAlgorithm):
             x = self.population[i]
             for j in range(n_t):
                 # we assume that last parameter is fitness
-                N = neighborhood(x[:2], 1, fitness_fn=self.fitnessFunction, n=1, specimen_template=self.specimenTemplate)  # or x[:(len(x)-1)]
+                N = neighborhood(x[:2], 1, fitness_fn=self.fitness_function, n=1, specimen_template=self.specimen_template)  # or x[:(len(x)-1)]
 
                 random_neighbour = N[0]
                 delta_f = random_neighbour[2] - x[2]
@@ -170,17 +194,17 @@ class SimulatedAnnealingAlgorithm(AbstractAlgorithm):
         # iterations = widget.get()
         while self.t > t_final:
             self.step()
-            self.updateCallback(self.population, self.bestPopulation)
+            self.update_callback(self.population, self.bestPopulation)
             # Timeout
             # if stop button hit
-            if self.shouldStop is True:
-                self.shouldStop = False
+            if self.should_stop is True:
+                self.should_stop = False
                 break
 
 
 class DifferentialEvolution(AbstractAlgorithm):
-    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
-        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback)
+    def __init__(self, initial_population, fitness_function, specimen_template, update_callback):
+        AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
 
         self.F = 0.9
         self.CR = 0.8
@@ -224,9 +248,9 @@ class DifferentialEvolution(AbstractAlgorithm):
                     trial_vector.append(actual_specimen[att_index])
 
             # constrains
-            PopulationUtils.validate_constrains(trial_vector, self.specimenTemplate)
+            PopulationUtils.validate_constrains(trial_vector, self.specimen_template)
             # count fitness of trial vector
-            trial_vector.append(self.fitnessFunction(trial_vector))
+            trial_vector.append(self.fitness_function(trial_vector))
             # add to new population one with better fitness
             if trial_vector[2] < actual_specimen[2]:
                 new_population.append(trial_vector)
@@ -242,8 +266,8 @@ class DifferentialEvolution(AbstractAlgorithm):
 
 
 class SOMA(AbstractAlgorithm):
-    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
-        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback)
+    def __init__(self, initial_population, fitness_function, specimen_template, update_callback):
+        AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
 
         self.pathLength = 2  # (1, 5]
         self.stepParam = 1.2  # (0.11, PathLength]
@@ -265,12 +289,11 @@ class SOMA(AbstractAlgorithm):
                 perturbation_vector.append(0)
         return perturbation_vector
 
-
     def step(self):
         # find leader
-        popSize = len(self.population)
+        pop_size = len(self.population)
         leader_index = 0
-        for i in range(popSize):
+        for i in range(pop_size):
             if self.population[leader_index][2] > self.population[i][2]:
                 leader_index = i
         leader = self.population[leader_index]
@@ -297,7 +320,7 @@ class SOMA(AbstractAlgorithm):
                         tmp = actual_position[att_index] + t * (leader[att_index] - actual_position[att_index])
                         new_position.append(tmp)
                 # calculate fitness
-                new_position.append(self.fitnessFunction(new_position))
+                new_position.append(self.fitness_function(new_position))
                 # check if new position is better
                 if new_position[2] < best_on_path[2]:
                     best_on_path = new_position
@@ -308,18 +331,16 @@ class SOMA(AbstractAlgorithm):
         self.migration_num += 1
 
 class ScatterSearch(AbstractAlgorithm):
-    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
-        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback)
+    def __init__(self, initial_population, fitness_function, specimen_template, update_callback):
+        AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
 
-    def getWidget(self):
+    def get_widget(self):
         pass
 
     def step(self):
         size = len(self.population)
         leader_index = 0
         new_population = []
-
-
 
         if len(new_population) == 0:
             new_population = np.array(self.bestPopulation).copy()
@@ -329,13 +350,13 @@ class ScatterSearch(AbstractAlgorithm):
 
 
 class ParticleSwarm(AbstractAlgorithm):
-    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
-        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback)
+    def __init__(self, initial_population, fitness_function, specimen_template, update_callback):
+        AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
 
-        self.d = len(specimenTemplate) # dimension
+        self.d = len(specimen_template) # dimension
         # count v_max - 1/20 of space range
         self.v_max = []
-        for att in specimenTemplate:
+        for att in specimen_template:
             d = att[1][1] - (att[1][0])
             self.v_max.append(d/20.0)
 
@@ -344,14 +365,14 @@ class ParticleSwarm(AbstractAlgorithm):
         self.c2 = 1
         # setrvacnsot - 1 means, its not important argument
         self.w = 1
-        self.bestPositions = np.array(initialPopulation).copy()
+        self.bestPositions = np.array(specimen_template).copy()
         # find initial global best position
         self.gBest = self.bestPositions[0]
         for pos in self.bestPositions:
             if self.gBest[self.d] > pos[self.d]:
                 self.gBest = pos
         # initialize speed
-        self.actualSpeed = [[0]*len(specimenTemplate)] * len(initialPopulation)
+        self.actualSpeed = [[0]*len(specimen_template)] * len(initial_population)
 
     def get_widget(self):
         pass
@@ -389,10 +410,10 @@ class ParticleSwarm(AbstractAlgorithm):
                 new_position.append(specimen_pos[att_i] + new_speed[att_i])
 
             # position validation
-            PopulationUtils.validate_constrains(new_position, self.specimenTemplate)
+            PopulationUtils.validate_constrains(new_position, self.specimen_template)
 
             # count fitness and update new position
-            new_position.append(self.fitnessFunction(new_position))
+            new_position.append(self.fitness_function(new_position))
             self.population[i] = new_position
 
             # control with best local and global
@@ -404,10 +425,10 @@ class ParticleSwarm(AbstractAlgorithm):
 
 
 class EvolutionStrategy(AbstractAlgorithm):
-    def __init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback):
-        AbstractAlgorithm.__init__(self, initialPopulation, fitnessFunction, specimenTemplate, updateCallback)
+    def __init__(self, initial_population, fitness_function, specimen_template, update_callback):
+        AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
 
-        self.d = len(specimenTemplate)
+        self.d = len(specimen_template)
         self.types = [(str(n), '<f8') for n in range(self.d)]
 
         self.sigmas = []
@@ -415,7 +436,7 @@ class EvolutionStrategy(AbstractAlgorithm):
 
     def count_variances(self):
         n = len(self.population)
-        for att in self.specimenTemplate:
+        for att in self.specimen_template:
             b = att[1][1] - (att[1][0])
             self.sigmas.append(math.sqrt((math.pi*b)/(2*n)))
 
@@ -430,7 +451,7 @@ class EvolutionStrategy(AbstractAlgorithm):
             for att_i in range(self.d):
                 new_child.append(self.population[i][att_i] + rand.gauss(0, self.sigmas[att_i]))
             # count fitness
-            new_child.append(self.fitnessFunction(new_child))
+            new_child.append(self.fitness_function(new_child))
             # add it to children
             children.append(new_child)
 
