@@ -49,7 +49,6 @@ class AppWindow(QMainWindow, Ui_MainWindow):
 
         # Evolution algorithm important properties
         self.algorithm = None
-        self.specimenTemplate = None
         self.test_functions = None
         self.fitness_function = None
         self.actualPopulation = None
@@ -84,6 +83,10 @@ class AppWindow(QMainWindow, Ui_MainWindow):
         z = self.fitness_function(np.meshgrid(x, x))
         self.plotHandler.updatePlot(x, y, z)
 
+        # also algorithm should probably be reset
+        if self.algorithm is not None:
+            self.algorithm.set_specimen_template(self.get_specimen_template())
+
     @QtCore.pyqtSlot()
     def generate_population(self):
         """
@@ -115,16 +118,22 @@ class AppWindow(QMainWindow, Ui_MainWindow):
             data_type = 'integer'
         return [(data_type, (min_const, max_const))] * 2
 
-    def update_callback(self, actual_population, best_population):
+    def update_callback(self, actual_population, best_population, done=False):
         """
         Callback for algorithms to trigger after each iteration
         :param actual_population:
         :param best_population:
+        :param done:
         :return:
         """
         self.actualPopulation = actual_population
         # TODO: Save best population to log Widget
-        self.plotHandler.updatePopulation(self.actualPopulation)
+        if done:
+            print 'Algorithm finished'
+            # self.actualPopulation = best_population
+            self.plotHandler.updatePopulation(best_population)
+        else:
+            self.plotHandler.updatePopulation(self.actualPopulation)
 
     @QtCore.pyqtSlot()
     def run_button_callback(self):
@@ -152,17 +161,17 @@ class AppWindow(QMainWindow, Ui_MainWindow):
         :param index:
         :return:
         """
-        if index < (len(INDEX_ALGORITHM)-1):
+        if index < (len(INDEX_ALGORITHM)):
             if INDEX_ALGORITHM[index] is None:
                 print 'None'
                 return
 
             self.algorithm = INDEX_ALGORITHM[index](self.actualPopulation, 
                                                     self.fitness_function, 
-                                                    self.specimenTemplate, 
+                                                    self.get_specimen_template(),
                                                     self.update_callback
                                                     )
-            print INDEX_ALGORITHM[index].__name__
+            print '{0} - {1} selected '.format(index, INDEX_ALGORITHM[index].__name__)
         else:
             return
 

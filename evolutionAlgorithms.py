@@ -39,6 +39,8 @@ class AbstractAlgorithm(object):
         self.update_callback = update_callback
         # specimen template with constraints
         self.specimen_template = specimen_template
+        # Dimension of specimens - also index for fitness value
+        self.d = len(self.specimen_template)
         # actual fitness function to be used
         self.fitness_function = fitness_function
 
@@ -50,7 +52,7 @@ class AbstractAlgorithm(object):
 
         # set population
         self.population = None
-        self.bestPopulation = None
+        self.best_population = None
         self.set_population(initial_population)
 
     def reset(self):
@@ -71,6 +73,7 @@ class AbstractAlgorithm(object):
         Set specimen template
         :param template:
         """
+        self.d = len(template)
         self.specimen_template = template
 
     def set_population(self, pop):
@@ -80,7 +83,7 @@ class AbstractAlgorithm(object):
         """
         self.reset()
         self.population = pop
-        self.bestPopulation = np.array(self.population).copy()
+        self.best_population = np.array(self.population).copy()
 
     def set_fitness_function(self, fn):
         """
@@ -116,25 +119,32 @@ class ClimbingHillAlgorithm(AbstractAlgorithm):
         for i in range(len(self.population)):
             x = self.population[i]
             # we assume that last parameter is fitness
-            N = neighborhood(x[:2], 1, fitness_fn=self.fitness_function, specimen_template=self.specimen_template)  # or x[:(len(x)-1)]
+            N = neighborhood(
+                    x[:self.d],  # or x[:(len(x)-1)]
+                    1,
+                    fitness_fn=self.fitness_function,
+                    specimen_template=self.specimen_template
+            )
             best = N[0]
             # Find best specimen in neighbourhood
             for nb in N:
-                if nb[2] < best[2]:
+                if nb[self.d] < best[self.d]:
                     best = nb
-            if best[2] < self.bestPopulation[i][2]:
-                self.bestPopulation[i] = best
+            if best[self.d] < self.best_population[i][self.d]:
+                self.best_population[i] = best
             self.population[i] = best
         self.iteration += 1
 
-    def run(self, iterations=10):
+    def run(self, max_iterations=10):
         self.is_running = True
         # TODO: get iterations from widget
-        # iterations = widget.get()
-        while self.iteration < iterations:
+        while self.iteration < max_iterations:
             self.step()
-            self.update_callback(self.population, self.bestPopulation)
-            # Timeout
+            self.update_callback(
+                    self.population,
+                    self.best_population,
+                    done=(self.iteration == max_iterations)
+            )
             # if stop button hit
             if self.should_stop is True:
                 self.is_running = False
@@ -169,7 +179,13 @@ class SimulatedAnnealingAlgorithm(AbstractAlgorithm):
             x = self.population[i]
             for j in range(n_t):
                 # we assume that last parameter is fitness
-                N = neighborhood(x[:2], 1, fitness_fn=self.fitness_function, n=1, specimen_template=self.specimen_template)  # or x[:(len(x)-1)]
+                N = neighborhood(
+                        x[:self.d],  # or x[:(len(x)-1)]
+                        1,  # diameter range
+                        n=1,  # number of neighbours
+                        fitness_fn=self.fitness_function,
+                        specimen_template=self.specimen_template
+                )
 
                 random_neighbour = N[0]
                 delta_f = random_neighbour[2] - x[2]
@@ -178,8 +194,8 @@ class SimulatedAnnealingAlgorithm(AbstractAlgorithm):
                     # Always accept better solution
                     self.population[i] = random_neighbour
                     # check if best solution changed
-                    if self.bestPopulation[i][2] > random_neighbour[2]:
-                        self.bestPopulation[i] = random_neighbour
+                    if self.best_population[i][2] > random_neighbour[2]:
+                        self.best_population[i] = random_neighbour
                 else:
                     r = rand.random()
                     if r < math.pow(math.e, ((-delta_f)/self.t)):
@@ -194,7 +210,7 @@ class SimulatedAnnealingAlgorithm(AbstractAlgorithm):
         # iterations = widget.get()
         while self.t > t_final:
             self.step()
-            self.update_callback(self.population, self.bestPopulation)
+            self.update_callback(self.population, self.best_population)
             # Timeout
             # if stop button hit
             if self.should_stop is True:
@@ -330,6 +346,7 @@ class SOMA(AbstractAlgorithm):
         self.population = new_population
         self.migration_num += 1
 
+
 class ScatterSearch(AbstractAlgorithm):
     def __init__(self, initial_population, fitness_function, specimen_template, update_callback):
         AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
@@ -343,7 +360,7 @@ class ScatterSearch(AbstractAlgorithm):
         new_population = []
 
         if len(new_population) == 0:
-            new_population = np.array(self.bestPopulation).copy()
+            new_population = np.array(self.best_population).copy()
 
         for combination in itertools.product(self.population, new_population):
             print combination[0] + combination[1]
@@ -353,7 +370,6 @@ class ParticleSwarm(AbstractAlgorithm):
     def __init__(self, initial_population, fitness_function, specimen_template, update_callback):
         AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
 
-        self.d = len(specimen_template) # dimension
         # count v_max - 1/20 of space range
         self.v_max = []
         for att in specimen_template:
@@ -427,9 +443,6 @@ class ParticleSwarm(AbstractAlgorithm):
 class EvolutionStrategy(AbstractAlgorithm):
     def __init__(self, initial_population, fitness_function, specimen_template, update_callback):
         AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
-
-        self.d = len(specimen_template)
-        self.types = [(str(n), '<f8') for n in range(self.d)]
 
         self.sigmas = []
         self.count_variances()
