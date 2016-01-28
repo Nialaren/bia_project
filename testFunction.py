@@ -99,6 +99,25 @@ def sineWave(data):
     return result
 
 
+# def MultiPurposeFnc(X1, X2=None, f=20, gs=11, gss=12, z_corrector=1):
+#     # print X1
+#     X1 = X1[0]
+#     Z = [None] * len(X1)
+#     for i in range(len(X1)):
+#         Z[i] = []
+#         for j in range(len(X1[i])):
+#             Z[i].append(__multi_purpose_function(X1[i][i], X1[i][j], f) * z_corrector)
+#
+#
+# def __multi_purpose_function(x1, x2, f, gs=11, gss=12):
+#     print x1
+#     print x2
+#     alpha = 0.25 + 3.75*(10 * x2 - gss)/(gs-gss)
+#     tmp1 = x1 / 10 * x2
+#     h = tmp1**alpha - tmp1 * math.sin(math.pi * f * x1 * 10 * x1)
+
+    # return h
+
 class MultiPurposeFnc(object):
     NAME = 'multi_purpose_function'
     MAX_X = 1
@@ -114,7 +133,7 @@ class MultiPurposeFnc(object):
         return 10 + x2
 
     @staticmethod
-    def function(x1, x2, F, gs=11, gss=12):
+    def function(x1, x2, F=20, gs=11, gss=12):
         alfa = 0.25 + 3.75*((MultiPurposeFnc.g(x2)-gss)/(gs-gss))
         tmp1 = MultiPurposeFnc.f1(x1) / MultiPurposeFnc.g(x2)
         h = tmp1**alfa - tmp1 * math.sin(math.pi * F * MultiPurposeFnc.f1(x1) * MultiPurposeFnc.g(x1))
@@ -122,7 +141,7 @@ class MultiPurposeFnc(object):
         return h
 
     @staticmethod
-    def graph_z(X1, X2, F, z_corrector=1):
+    def graph_z(X1, X2, F=1, z_corrector=1):
         Z = [None] * len(X1)
         for i in range(len(X1)):
             Z[i] = []

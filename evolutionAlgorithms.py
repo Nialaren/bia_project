@@ -313,12 +313,22 @@ class SOMA(AbstractAlgorithm):
         AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
 
         self.pathLength = 2  # (1, 5]
-        self.stepParam = 1.2  # (0.11, PathLength]
-        self.PRT = 0.1  # [0,1]
+        self.stepParam = 0.23  # (0.11, PathLength]
+        self.PRT = 0.1  # [0,1] perturbation vector
         self.migration_num = 0
         self.migrations = 10  # [10, user] - same as iterations
         # [+- anything, user ] - optimal around 0.001 if range is 100 - 100.1
         self.minDiv = -1  # minus means, that algorithm terminates after all rounds (migrations)
+
+        # outer step
+        self.specimen_index = 0
+        self.leader = None
+        self.new_population = []
+
+        # inner step
+        self.t_distance = self.stepParam
+        self.inner_actual_position = None
+        self.inner_best_position = None
 
     def get_widget(self):
         pass
@@ -337,7 +347,7 @@ class SOMA(AbstractAlgorithm):
         pop_size = len(self.population)
         leader_index = 0
         for i in range(pop_size):
-            if self.population[leader_index][2] > self.population[i][2]:
+            if self.population[leader_index][self.d] > self.population[i][self.d]:
                 leader_index = i
         leader = self.population[leader_index]
 
@@ -354,7 +364,7 @@ class SOMA(AbstractAlgorithm):
             # Migration(mutation) of each element
             while t < self.pathLength:
                 new_position = []
-                dimension = len(specimen[:2])
+                dimension = len(specimen[:self.d])
                 pert_vector = self.generate_perturbation_vector(dimension)
                 for att_index in range(dimension):
                     if pert_vector[att_index] == 0:
@@ -365,13 +375,29 @@ class SOMA(AbstractAlgorithm):
                 # calculate fitness
                 new_position.append(self.fitness_function(new_position))
                 # check if new position is better
-                if new_position[2] < best_on_path[2]:
+                if new_position[self.d] < best_on_path[self.d]:
                     best_on_path = new_position
                 # increase step
                 t += self.stepParam
             new_population.append(best_on_path)
         self.population = new_population
-        self.migration_num += 1
+        self.iteration += 1
+
+
+    def run(self, max_generations=10):
+        # self.iteration = 0
+        while self.iteration < max_generations:
+            self.step()
+            self.best_population = self.population
+            self.update_callback(
+                    self.population,
+                    self.best_population,
+                    done=(self.iteration >= max_generations)
+            )
+            # if stop button hit
+            if self.should_stop is True:
+                self.should_stop = False
+                break
 
 
 class ScatterSearch(AbstractAlgorithm):

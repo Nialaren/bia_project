@@ -16,7 +16,8 @@ INDEX_ALGORITHM = [
     None,
     eA.ClimbingHillAlgorithm,
     eA.SimulatedAnnealingAlgorithm,
-    eA.DifferentialEvolution
+    eA.DifferentialEvolution,
+    eA.SOMA
 ]
 
 
@@ -103,7 +104,12 @@ class AppWindow(QMainWindow, Ui_MainWindow):
         x = np.arange(x1, x2, x3)
 
         y = x
-        z = self.fitness_function(np.meshgrid(x, x))
+        z = None
+        if self.fitness_function.__name__ is tF.MultiPurposeFnc.__name__:
+            print 'gooo'
+            z = tF.MultiPurposeFnc.graph_z(x, y)
+        else:
+            z = self.fitness_function(np.meshgrid(x, x))
         # Draw all at once
         self.plotHandler.updatePlot(x, y, z, population=self.actualPopulation)
 
