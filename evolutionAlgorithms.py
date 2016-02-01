@@ -371,6 +371,15 @@ class SOMA(AbstractAlgorithm):
                         new_position.append(actual_position[att_index])
                     else:
                         tmp = actual_position[att_index] + t * (leader[att_index] - actual_position[att_index])
+                        # Check constraints
+                        high_const = self.specimen_template[att_index][1][1]
+                        low_const = self.specimen_template[att_index][1][0]
+                        if tmp < low_const or tmp > high_const:
+                            att_type = self.specimen_template[att_index][0]
+                            if att_type == 'real':
+                                tmp = rand.random() * (high_const - low_const) + low_const
+                            else:
+                                tmp = rand.randint(low_const, high_const)
                         new_position.append(tmp)
                 # calculate fitness
                 new_position.append(self.fitness_function(new_position))
@@ -383,8 +392,7 @@ class SOMA(AbstractAlgorithm):
         self.population = new_population
         self.iteration += 1
 
-
-    def run(self, max_generations=10):
+    def run(self, max_generations=100):
         # self.iteration = 0
         while self.iteration < max_generations:
             self.step()
@@ -498,7 +506,13 @@ class EvolutionStrategy(AbstractAlgorithm):
         AbstractAlgorithm.__init__(self, initial_population, fitness_function, specimen_template, update_callback)
 
         self.sigmas = []
-        self.count_variances()
+        if self.population is not None:
+            self.count_variances()
+
+    def set_population(self, pop):
+        AbstractAlgorithm.set_population(self, pop)
+        if self.population is not None:
+            self.count_variances()
 
     def count_variances(self):
         n = len(self.population)
@@ -529,6 +543,21 @@ class EvolutionStrategy(AbstractAlgorithm):
             new_population.append(all_values[sorted_indexes[i]])
         self.population = new_population
         self.iteration += 1
+
+    def run(self, max_iterations=20):
+        # self.iteration = 0
+        while self.iteration < max_iterations:
+            self.step()
+            self.best_population = self.population
+            self.update_callback(
+                    self.population,
+                    self.best_population,
+                    done=(self.iteration >= max_iterations)
+            )
+            # if stop button hit
+            if self.should_stop is True:
+                self.should_stop = False
+                break
 
 
 

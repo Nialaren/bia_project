@@ -17,7 +17,8 @@ INDEX_ALGORITHM = [
     eA.ClimbingHillAlgorithm,
     eA.SimulatedAnnealingAlgorithm,
     eA.DifferentialEvolution,
-    eA.SOMA
+    eA.SOMA,
+    eA.EvolutionStrategy
 ]
 
 
